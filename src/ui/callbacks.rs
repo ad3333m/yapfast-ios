@@ -931,7 +931,36 @@ pub(super) fn bind_callbacks(window: &YapfastWindow, adapter: &Rc<RefCell<Adapte
         });
     }
     bind!(on_restore, Action::Restore);
-    bind!(on_logout, Action::Logout);
+    {
+        // Signing out ends the login, so Switch Accounts drops the account.
+        let adapter = adapter.clone();
+        let weak = window.as_weak();
+        window.on_logout(move || {
+            if let Some(window) = weak.upgrade() {
+                let mut adapter = adapter.borrow_mut();
+                adapter.drop_signed_out_account();
+                adapter.action(&window, Action::Logout);
+            }
+        });
+    }
+    {
+        let adapter = adapter.clone();
+        let weak = window.as_weak();
+        window.on_switch_account(move |id| {
+            if let Some(window) = weak.upgrade() {
+                adapter.borrow_mut().switch_account(&window, &id);
+            }
+        });
+    }
+    {
+        let adapter = adapter.clone();
+        let weak = window.as_weak();
+        window.on_add_account(move || {
+            if let Some(window) = weak.upgrade() {
+                adapter.borrow_mut().add_account(&window);
+            }
+        });
+    }
     bind!(on_refresh_trust, Action::RefreshTrust);
     bind!(on_retry_sync, Action::RetrySync);
     bind!(
@@ -2236,6 +2265,39 @@ pub(super) fn bind_callbacks(window: &YapfastWindow, adapter: &Rc<RefCell<Adapte
             state.borrow_mut().save_theme(&window);
         }
     });
+    #[cfg(feature = "discord")]
+    {
+        let state = adapter.clone();
+        let weak = window.as_weak();
+        window.on_decor_opened(move || {
+            if let Some(window) = weak.upgrade() {
+                state.borrow_mut().decor_opened(&window);
+            }
+        });
+        let state = adapter.clone();
+        let weak = window.as_weak();
+        window.on_decor_search(move |query| {
+            if let Some(window) = weak.upgrade() {
+                state.borrow().decor_search(&window, &query);
+            }
+        });
+        let state = adapter.clone();
+        let weak = window.as_weak();
+        window.on_decor_choose(move |sku, nameplate| {
+            if let Some(window) = weak.upgrade() {
+                state.borrow_mut().decor_choose(&window, &sku, nameplate);
+            }
+        });
+        let state = adapter.clone();
+        let weak = window.as_weak();
+        window.on_decor_take_off(move || {
+            if let Some(window) = weak.upgrade() {
+                state.borrow_mut().decor_take_off(&window);
+            }
+        });
+    }
+    let state = adapter.clone();
+    window.on_translate_message(move |item| state.borrow_mut().translate(&item));
     let state = adapter.clone();
     window.on_import_theme_file(move || state.borrow_mut().import_theme_file());
     let state = adapter.clone();

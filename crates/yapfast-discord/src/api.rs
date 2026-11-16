@@ -698,6 +698,16 @@ impl Api {
             .await
     }
 
+    /// The shop's categories and what each sells, as its Shop page lists
+    /// them; EnhancedDecor picks decorations and nameplates from them.
+    pub async fn collectibles_categories(&self) -> Result<Value> {
+        self.json(self.request(
+            Method::GET,
+            "/collectibles-categories/v2?include_bundles=true&variants_return_style=2",
+        ))
+        .await
+    }
+
     /// A shop product, such as the profile effect of a SKU, as the client
     /// fetches it to show the effect.
     pub async fn collectibles_product(&self, sku: &str) -> Result<Value> {

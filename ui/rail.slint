@@ -2,7 +2,7 @@ import { DmHeading } from "yapfast/dm-heading.slint";
 import { NewTag } from "yapfast/new-tags.slint";
 import { ClientStyle } from "yapfast/style.slint";
 import { ListView } from "scrollview.slint";
-import { Theme, Tip, Middle, Label } from "theme.slint";
+import { Theme, Tip, Middle, Label, Plugins } from "theme.slint";
 import { Avatar, Nameplate, PictureStore, StatusText, StyledName, NameStyleRow, VoiceSpot, ServerTagChip, ActivityClock } from "controls.slint";
 import { DiscordBadge } from "discord.slint";
 import { PersonRow, LivePill, VoiceCard } from "voice.slint";
@@ -995,6 +995,8 @@ export component ServerRail inherits Rectangle {
     in property <bool> dms-unread;
     /// DM mentions and incoming friend requests, as a badge on the DM home.
     in property <string> dms-badge;
+    /// Someone is typing in a DM, which HomeTyping shows on the DM button.
+    in property <bool> dms-typing;
     in property <[ServerRow]> servers;
     /// Without Matrix every server is Discord's, so names don't say so.
     in property <bool> matrix-build: true;
@@ -1014,7 +1016,7 @@ export component ServerRail inherits Rectangle {
         padding-top: ClientStyle.enabled ? 0px : 12px; padding-bottom: 12px; spacing: 8px;
         RailItem {
             // The app's logo, as Discord puts its own here.
-            icon: @image-url("icons/logo.svg"); icon-color: Theme.accent; icon-size: ClientStyle.enabled ? 24px : 32px;
+            icon: Plugins.home-typing && root.dms-typing ? @image-url("icons/ellipsis.svg") : @image-url("icons/logo.svg"); icon-color: Theme.accent; icon-size: ClientStyle.enabled ? 24px : 32px;
             label: "Direct messages" + (root.dms-badge != "" ? ", " + root.dms-badge + " waiting" : root.dms-unread ? ", unread" : "");
             tip: "Direct messages";
             selected: root.dms-selected; unread: root.dms-unread; badge: root.dms-badge;

@@ -14,3 +14,5 @@ What the desktop build has and iOS doesn't:
 - Skia draws through Metal, which Slint's renderer reaches only by wgpu, so
   the iPhone build turns on its `wgpu-30` feature as Windows does; the
   login sits in the keychain through keyring's `protected` store.
+- Screen sharing: libwebrtc has no desktop capturer on iOS, so a stand-in in
+  `stream_worker.rs` lists no screen or window; cameras still share.

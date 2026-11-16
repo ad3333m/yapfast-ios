@@ -1,4 +1,5 @@
-import { AccountPopover } from "yapfast/account-popover.slint";
+import { AccountPopover, SwitchAccount } from "yapfast/account-popover.slint";
+export { SwitchAccount } from "yapfast/account-popover.slint";
 import { ClientStyle } from "yapfast/style.slint";
 import { WindowBar } from "yapfast/window-bar.slint";
 import { Palette } from "std-widgets.slint";
@@ -38,7 +39,7 @@ import "fonts/DisplayName-Journal.ttf";
 // Yapfast's window. Its parts live beside it, by area: theme.slint, controls.slint,
 // discord.slint, voice.slint, rail.slint, composer.slint, messages.slint,
 // settings.slint, people.slint, friends.slint, dialogs.slint and sign-in.slint.
-import { Theme, Tip, BadgeTip, ReactionHover, Middle, Popup, PopupMotion, Twemoji } from "theme.slint";
+import { Theme, Tip, BadgeTip, ReactionHover, Middle, Popup, PopupMotion, Twemoji, Plugins } from "theme.slint";
 import { TitleBar, ResizeEdges } from "title_bar.slint";
 import { InboxRow, InboxPopout } from "yapfast/inbox.slint";
 import { GifPicker, GifTile, PickerTab } from "gifs.slint";
@@ -48,7 +49,8 @@ import { PersonRow, VoiceCard, CallLink, CallLinkCard, LinkTouch, SignalIcon, Vo
 import { ServerRow, RoomRow, StatusDot, ServerRail, ServerHeader, RoomList, VoiceCardView } from "rail.slint";
 import { StagedFile, StagedTile, Composer, MentionRow, MentionList, EmojiSuggestions, RequestBar } from "composer.slint";
 import { InlineEdit, EmojiCell, EmojiRow, EmojiTile, EmojiSection, RailSection, EmojiCard, EmojiCardView, MessageStickerCard, MessageStickerCardView, MessageRow, ReactionToggle, EmojiButton, EmojiPicker, MessageMenu, MessageGallery, MessageStickers, FileCard, MessageContent, EmbedView, BotTag, NoConversation, ConversationStart, HistoryEdge, UnreadBar, PresentBar, ImageViewer, VideoViewer, VideoPlayer, VoicePlayer, Polls } from "messages.slint";
-import { Choices, SettingsRow, SettingsScreen, AccountSettings, AppearanceSettings, ThemeCard, ThemeColour, VoiceSettings, KeybindSettings, KeybindRow, MessageSettings, NotificationSettings, SoundSettings, AdvancedSettings, DiscordLinkSettings, DiscordSettings, BlockedRow, GameActivitySettings, GameExecutable, AboutSettings, PluginSettings } from "settings.slint";
+import { Choices, SettingsRow, SettingsScreen, AccountSettings, AppearanceSettings, ThemeCard, ThemeColour, VoiceSettings, KeybindSettings, KeybindRow, MessageSettings, NotificationSettings, SoundSettings, AdvancedSettings, DiscordLinkSettings, DiscordSettings, BlockedRow, GameActivitySettings, GameExecutable, AboutSettings, PluginSettings, DecorSettings, DecorItem } from "settings.slint";
+export { DecorItem } from "settings.slint";
 import { ActivityMenu, MemberRow, MemberActivityRow, ProfileData, BadgeTipCard, ProfileServerRow, MemberPanel, ProfileCard, ProfileModal, ServerCard, RoleCard, TagCard, TagCardView } from "people.slint";
 import { RequestRow, FriendRow, FriendsScreen, HeaderTab, RequestsScreen, AddFriendDialog } from "friends.slint";
 import { ContactRow, PlaceRow, ReactionPill, ReactorRow, StatusDialog, NewDmDialog, ForwardDialog, QuickSwitcher, ReactionsDialog, StatusMenu, PersonPrompt, PersonDialog, LeavingDialog, PollAnswerDraft, PollDialog } from "dialogs.slint";
@@ -132,6 +134,7 @@ export component YapfastWindow inherits Window {
     in property <bool> restore-available;
     in property <bool> dms-selected;
     in property <bool> dms-unread;
+    in property <bool> dms-typing;
     in property <string> dms-badge;
     // The dialog for starting a DM: who it found, and whether one is starting.
     // Adding a Discord friend by username: whether the request went, and what to say.
@@ -1423,6 +1426,22 @@ export component YapfastWindow inherits Window {
     callback delete-theme();
     /// Imports an Endcord, Vencord or BetterDiscord theme from a file the
     /// person picks, or from a link; the note says how it went.
+    /// Switch Accounts: the Discord accounts linked on this computer, and
+    /// switching to one or linking another beside them; see src/ui/accounts.rs.
+    in property <[SwitchAccount]> saved-accounts;
+    /// EnhancedDecor's page: the shop's decorations and nameplates, those
+    /// worn, and how loading went; see src/ui/decor.rs.
+    in property <[DecorItem]> decor-decorations;
+    in property <[DecorItem]> decor-nameplates;
+    in property <string> decor-decoration;
+    in property <string> decor-nameplate;
+    in property <string> decor-note;
+    callback decor-opened();
+    callback decor-search(string);
+    callback decor-choose(string, bool);
+    callback decor-take-off();
+    callback switch-account(string);
+    callback add-account();
     callback import-theme-file();
     callback import-theme-link(string);
     in-out property <string> theme-import-note;
@@ -1637,6 +1656,8 @@ export component YapfastWindow inherits Window {
     /// Whether a message's menu offers Mark Unread.
     pure callback can-mark-unread(string) -> bool;
     callback mark-unread(string);
+    /// The Translate plugin, from a message's menu; see src/ui/translate.rs.
+    callback translate-message(string);
     /// The text selected in the message at this point in the window, as
     /// copied, or empty when none is.
     pure callback selection-at(length, length) -> string;
@@ -2012,16 +2033,21 @@ export component YapfastWindow inherits Window {
             close => { soundboard-menu.close(); }
         }
     }
+    // Discord's Screen Share window: over the whole window, dimmed, which a
+    // click outside it closes.
     share-menu := PopupWindow {
-        x: max(8px, min(root.width - self.width - 8px, root.menu-x - 6px));
-        y: max(8px, root.menu-y - self.height - 6px);
-        // Wider for the screens' pictures.
-        width: root.share-screens.length > 0 ? 336px : 240px;
-        // No taller than the window has room for: with many windows and
-        // cameras listed, or the window short or zoomed, its choices scroll.
-        height: min(share-content.full-height, root.height - 16px);
-        close-policy: PopupClosePolicy.close-on-click-outside;
+        x: 0px; y: 0px; width: root.width; height: root.height;
+        close-policy: PopupClosePolicy.no-auto-close;
+        Rectangle {
+            background: #000000b3;
+            TouchArea { clicked => { share-menu.close(); } }
+        }
         share-content := ShareMenu {
+            width: min(620px, root.width - 32px);
+            // No taller than the window has room for: its choices scroll.
+            height: min(self.full-height, root.height - 32px);
+            x: (root.width - self.width) / 2; y: (root.height - self.height) / 2;
+            close => { share-menu.close(); }
             screens: root.share-screens; windows: root.share-windows; cameras: root.share-cameras;
             dialog: !root.share-lists; switching: root.pick-switch;
             pick-source <=> root.pick-source; pick-resolution <=> root.pick-resolution; pick-fps <=> root.pick-fps;
@@ -2273,6 +2299,9 @@ export component YapfastWindow inherits Window {
                 edit-profile => { root.edit-profile(); status-menu.close(); }
                 copy-id => { root.copy-text(root.account-user-id); status-menu.close(); }
                 settings => { root.settings-section = 0; root.settings-open = true; status-menu.close(); }
+                accounts: root.saved-accounts;
+                switch-account(id) => { status-menu.close(); root.switch-account(id); }
+                add-account => { status-menu.close(); root.add-account(); }
             }
             if !ClientStyle.enabled: StatusMenu {
                 status: root.discord-status; has-custom-status: root.has-custom-status;
@@ -2589,6 +2618,7 @@ export component YapfastWindow inherits Window {
             pin-message(item) => { root.pin-message(item); message-menu.close(); }
             message-link: root.menu-message-link; message-id: root.menu-message-id; can-mark-unread: root.menu-can-mark-unread;
             mark-unread(item) => { root.mark-unread(item); message-menu.close(); }
+            translate(item) => { root.translate-message(item); message-menu.close(); }
             // Shift and a click deletes at once, as Discord's menu does; a
             // plain click asks first.
             request-delete(item) => {
@@ -2633,7 +2663,7 @@ export component YapfastWindow inherits Window {
                     vertical-stretch: 1; spacing: 0px;
                     // Server rail.
                     ServerRail {
-                        dms-selected: root.dms-selected; dms-unread: root.dms-unread; dms-badge: root.dms-badge; servers: root.servers;
+                        dms-selected: root.dms-selected; dms-unread: root.dms-unread; dms-badge: root.dms-badge; dms-typing: root.dms-typing; servers: root.servers;
                         matrix-build: root.matrix-build;
                         navigate-dms => { root.navigate-dms(); }
                         navigate-server(id) => { root.navigate-server(id); }
@@ -3964,7 +3994,7 @@ export component YapfastWindow inherits Window {
                                         }
                                         // As Discord's: the GIFs, the stickers, then the emoji,
                                         // in one picker.
-                                        if root.can-pick-gifs: VerticalLayout {
+                                        if root.can-pick-gifs && !Plugins.cleaner-discord: VerticalLayout {
                                             alignment: end; padding-bottom: ClientStyle.composer-button-inset;
                                             gif-button := IconButton {
                                                 icon: @image-url("icons/gif.svg"); label: "Open GIF picker";
@@ -3976,7 +4006,7 @@ export component YapfastWindow inherits Window {
                                                 }
                                             }
                                         }
-                                        if root.can-pick-stickers: VerticalLayout {
+                                        if root.can-pick-stickers && !Plugins.cleaner-discord: VerticalLayout {
                                             alignment: end; padding-bottom: ClientStyle.composer-button-inset;
                                             sticker-button := IconButton {
                                                 icon: @image-url("icons/sticker.svg"); label: "Open sticker picker";
@@ -4388,6 +4418,8 @@ export component YapfastWindow inherits Window {
         settings-section <=> root.settings-section;
         discord-build: root.discord-build; preview: root.preview;
         close => { root.settings-open = false; }
+        open-link(link) => { root.open-link(link); }
+        sign-out => { root.settings-open = false; root.logout(); }
         refresh-devices => { root.refresh-devices(); }
         copy-text(text) => { root.copy-text(text); }
         if root.settings-section == 0: AccountSettings {
@@ -4449,6 +4481,16 @@ export component YapfastWindow inherits Window {
             select-camera(index) => { root.select-camera(index); }
             refresh-devices => { root.refresh-devices(); }
             preferences-changed => { root.preferences-changed(); }
+        }
+        if root.settings-section == 12: DecorSettings {
+            decorations: root.decor-decorations; nameplates: root.decor-nameplates;
+            decoration: root.decor-decoration; nameplate: root.decor-nameplate; note: root.decor-note;
+            initial: root.account-initial; tint: root.account-tint; picture: root.account-picture;
+            init => { root.decor-opened(); }
+            search(text) => { root.decor-search(text); }
+            choose(sku, nameplate) => { root.decor-choose(sku, nameplate); }
+            take-off => { root.decor-take-off(); }
+            edit-profile => { root.settings-open = false; root.edit-profile(); }
         }
         if root.settings-section == 11: PluginSettings {
             share-typing <=> root.share-typing; reply-ping <=> root.reply-ping-default;

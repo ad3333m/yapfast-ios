@@ -40,6 +40,7 @@ use crate::drop::Drag;
 use crate::ios_rfd as rfd;
 use crate::{autostart, custom_emoji, emoji, emoji_text, graphics, zoom};
 
+mod accounts;
 mod active_now;
 mod app_commands;
 mod appearance;
@@ -50,6 +51,8 @@ mod call_timer;
 mod callbacks;
 mod channel_settings;
 mod css_theme;
+#[cfg(feature = "discord")]
+mod decor;
 mod emoji_animation;
 mod emoji_grid;
 mod games;
@@ -72,6 +75,7 @@ mod stickers;
 mod theme;
 mod tiles;
 mod title_bar;
+mod translate;
 mod updates;
 mod yapfast;
 
@@ -1285,6 +1289,11 @@ struct Layout {
     profile_frames: Option<bool>,
     /// The plugins on in Settings → Plugins, by name, such as `MessageLogger`.
     plugins: Vec<String>,
+    /// The Discord accounts linked on this computer, for Switch Accounts.
+    discord_accounts: Vec<accounts::KeptAccount>,
+    /// EnhancedDecor's look on each account here, by user id.
+    #[cfg(feature = "discord")]
+    local_looks: HashMap<String, decor::LocalLook>,
     /// Joining a call turns the microphone on; on unless turned off.
     unmute_on_join: Option<bool>,
     /// Joining a call deafens.
@@ -1466,6 +1475,33 @@ fn play_call_volumes(window: &YapfastWindow) {
     yapfast_core::volume::set_speakers(gain(window.get_speaker_volume()));
 }
 
+/// A plugin's switch in Settings → Plugins: sets it when given a value, and
+/// says whether it's on.
+fn plugin_switch(switches: &Plugins<'_>, plugin: yapfast_core::plugins::Plugin, set: Option<bool>) -> bool {
+    use yapfast_core::plugins::Plugin;
+    macro_rules! switch {
+        ($get:ident, $set:ident) => {{
+            if let Some(on) = set {
+                switches.$set(on);
+            }
+            switches.$get()
+        }};
+    }
+    match plugin {
+        Plugin::MessageLogger => switch!(get_message_logger, set_message_logger),
+        Plugin::FakeNitro => switch!(get_fake_nitro, set_fake_nitro),
+        Plugin::SecretGuard => switch!(get_secret_guard, set_secret_guard),
+        Plugin::VolumeBooster => switch!(get_volume_booster, set_volume_booster),
+        Plugin::CleanerDiscord => switch!(get_cleaner_discord, set_cleaner_discord),
+        Plugin::DisableCameras => switch!(get_disable_cameras, set_disable_cameras),
+        Plugin::PinIcon => switch!(get_pin_icon, set_pin_icon),
+        Plugin::GoogleThat => switch!(get_google_that, set_google_that),
+        Plugin::Translate => switch!(get_translate, set_translate),
+        Plugin::HomeTyping => switch!(get_home_typing, set_home_typing),
+        Plugin::KeyboardSounds => switch!(get_keyboard_sounds, set_keyboard_sounds),
+    }
+}
+
 /// The choice a setting shows at an index; the first if there's none.
 fn chosen<T: Copy>(choices: &[T], index: i32) -> T {
     choices
@@ -1577,43 +1613,25 @@ impl Layout {
     /// Reads Settings' profile switches.
     /// Sets Settings → Plugins' switches as saved, and turns those plugins on.
     fn show_plugins(&self, window: &YapfastWindow) {
-        use yapfast_core::plugins::{self, Plugin};
-        let on = |plugin: Plugin| {
-            let name = format!("{plugin:?}");
-            self.plugins.iter().any(|kept| *kept == name)
-        };
         let switches = window.global::<Plugins>();
-        switches.set_message_logger(on(Plugin::MessageLogger));
-        switches.set_fake_nitro(on(Plugin::FakeNitro));
-        switches.set_secret_guard(on(Plugin::SecretGuard));
-        switches.set_volume_booster(on(Plugin::VolumeBooster));
-        for plugin in [
-            Plugin::MessageLogger,
-            Plugin::FakeNitro,
-            Plugin::SecretGuard,
-            Plugin::VolumeBooster,
-        ] {
-            plugins::set(plugin, on(plugin));
+        for plugin in yapfast_core::plugins::ALL {
+            let name = format!("{plugin:?}");
+            let on = self.plugins.iter().any(|kept| *kept == name);
+            plugin_switch(&switches, plugin, Some(on));
+            yapfast_core::plugins::set(plugin, on);
         }
     }
 
     /// Keeps the plugins Settings → Plugins has on, and turns them on.
     fn read_plugins(&mut self, window: &YapfastWindow) {
-        use yapfast_core::plugins::{self, Plugin};
         let switches = window.global::<Plugins>();
-        let states = [
-            (Plugin::MessageLogger, switches.get_message_logger()),
-            (Plugin::FakeNitro, switches.get_fake_nitro()),
-            (Plugin::SecretGuard, switches.get_secret_guard()),
-            (Plugin::VolumeBooster, switches.get_volume_booster()),
-        ];
-        self.plugins = states
-            .iter()
-            .filter(|(_, on)| *on)
-            .map(|(plugin, _)| format!("{plugin:?}"))
-            .collect();
-        for (plugin, on) in states {
-            plugins::set(plugin, on);
+        self.plugins.clear();
+        for plugin in yapfast_core::plugins::ALL {
+            let on = plugin_switch(&switches, plugin, None);
+            if on {
+                self.plugins.push(format!("{plugin:?}"));
+            }
+            yapfast_core::plugins::set(plugin, on);
         }
     }
 

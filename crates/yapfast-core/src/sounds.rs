@@ -421,6 +421,44 @@ pub fn play(set: SoundSet, sound: Sound, volume: f32, speaker: Option<&str>) {
     }
 }
 
+/// KeyboardSounds' click: a short tick of noise over a high tone, a little
+/// different each time, played as [`play`] plays a sound.
+pub fn click() {
+    let seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(1, |time| time.subsec_nanos() | 1);
+    let started = std::thread::Builder::new()
+        .name("yapfast-click".into())
+        .spawn(move || {
+            let samples = click_samples(seed);
+            if let Err(error) = play_samples(&samples, None) {
+                tracing::debug!(error = format!("{error:#}"), "could not play a key click");
+            }
+        });
+    if let Err(error) = started {
+        tracing::debug!(%error, "could not start a key click");
+    }
+}
+
+/// 30 ms of a key's click as interleaved stereo, from `seed`.
+fn click_samples(seed: u32) -> Vec<f32> {
+    let length = (0.03 * RATE as f32) as usize;
+    let pitch = 1500.0 + (seed % 600) as f32;
+    let mut noise = seed;
+    let mut samples = Vec::with_capacity(length * 2);
+    for index in 0..length {
+        let time = index as f32 / RATE as f32;
+        noise ^= noise << 13;
+        noise ^= noise >> 17;
+        noise ^= noise << 5;
+        let white = noise as f32 / u32::MAX as f32 * 2.0 - 1.0;
+        let tone = (std::f32::consts::TAU * pitch * time).sin();
+        let value = (white * 0.5 + tone * 0.5) * (-time * 220.0).exp() * 0.18;
+        samples.extend([value, value]);
+    }
+    samples
+}
+
 /// Plays interleaved stereo samples to the end.
 fn play_samples(samples: &[f32], speaker: Option<&str>) -> anyhow::Result<()> {
     use anyhow::Context;

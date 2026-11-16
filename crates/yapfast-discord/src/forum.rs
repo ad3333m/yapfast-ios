@@ -278,7 +278,7 @@ mod tests {
         );
         assert_eq!(
             starter.picture.as_deref(),
-            Some("https://media/cat.png?format=webp&width=144&height=72")
+            Some("https://media/cat.png?format=webp&quality=lossless&width=144&height=72")
         );
         assert!(starter.spoiler);
         let embedded = Starter::of(&json!({
@@ -294,7 +294,7 @@ mod tests {
         assert_eq!(embedded.reaction, Some((Emoji::Unicode("👀".into()), 1)));
         assert_eq!(
             embedded.picture.as_deref(),
-            Some("https://media/t.jpg?format=webp&width=100&height=100")
+            Some("https://media/t.jpg?format=webp&quality=lossless&width=100&height=100")
         );
         assert!(Starter::of(&json!({"id": "5", "content": "?"})).is_none());
     }

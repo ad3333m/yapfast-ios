@@ -127,6 +127,55 @@ pub fn forget() -> Result<()> {
     Ok(())
 }
 
+/// Where the login of an account linked on this computer stays, by its user
+/// id, for Switch Accounts to link it again.
+fn saved(user: &str) -> Result<Entry> {
+    named(&format!("discord-token-{user}"))
+}
+
+/// Keeps the linked account's login under its user id too.
+pub fn remember(user: &str) -> Result<()> {
+    if crate::client::test_server().is_some() {
+        return Ok(());
+    }
+    let token = load()?;
+    let entry = saved(user)?;
+    if entry.get_password().ok().as_deref() != Some(token.as_str()) {
+        entry
+            .set_password(&token)
+            .map_err(|_| anyhow!("could not keep the login in the OS credential store"))?;
+    }
+    Ok(())
+}
+
+/// Links the account kept under `user` in place of the one linked now,
+/// whose login stays kept; what the cache held of it goes.
+pub fn switch_to(user: &str) -> Result<()> {
+    let token = saved(user)?
+        .get_password()
+        .map_err(|_| anyhow!("that account's login isn't kept on this computer"))?;
+    crate::cache::forget();
+    store(&token)
+}
+
+/// Unlinks the account linked now on this computer only, leaving its login
+/// working and kept, so another can be linked beside it.
+pub fn set_aside() -> Result<()> {
+    crate::cache::forget();
+    match entry()?.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(_) => bail!("could not remove the token from the OS credential store"),
+    }
+}
+
+/// Forgets the login kept for `user`, as signing it out does.
+pub fn drop_saved(user: &str) -> Result<()> {
+    match saved(user)?.delete_credential() {
+        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(_) => bail!("could not remove the login from the OS credential store"),
+    }
+}
+
 /// Accept the header value as copied from browser developer tools, with or
 /// without surrounding quotes or whitespace.
 pub fn clean(token: &str) -> Result<String> {

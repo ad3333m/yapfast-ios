@@ -77,6 +77,9 @@ impl Application {
             return vec![];
         }
         self.state.drafts.insert(id.clone(), body.clone());
+        if crate::plugins::on(crate::plugins::Plugin::KeyboardSounds) {
+            crate::sounds::click();
+        }
         if self.state.preview {
             vec![]
         } else {
@@ -276,6 +279,20 @@ impl Application {
     }
 
     pub(super) fn send(&mut self) -> Vec<Effect> {
+        // GoogleThat: `/google words` goes as a link to Google's results.
+        if crate::plugins::on(crate::plugins::Plugin::GoogleThat)
+            && let Some(id) = self.state.selected.clone()
+            && let Some(words) = self
+                .state
+                .drafts
+                .get(&id)
+                .and_then(|draft| draft.strip_prefix("/google "))
+                .filter(|words| !words.trim().is_empty())
+        {
+            let link = crate::plugins::google(words);
+            self.state.drafts.insert(id.clone(), link);
+            return self.send_in(id);
+        }
         match self.state.selected.clone() {
             Some(id) if self.state.command_draft().is_some() => self.run_written_command(&id),
             // Until the room's commands come, `/` and what follows may be one

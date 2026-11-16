@@ -5,6 +5,9 @@ import { ProfileData, BadgeRows, ProfileTheme } from "../people.slint";
 import { StatusDot } from "../rail.slint";
 import { StatusOption } from "../dialogs.slint";
 
+/// A Discord account linked on this computer, for Switch Accounts.
+export struct SwitchAccount { id: string, name: string, username: string, initial: string, tint: color, picture-url: string, current: bool }
+
 // Uses the account summary already supplied by Yapfast, and, once it has
 // come, the account's own profile: its banner or colour, theme, decoration,
 // styled name, server tag and badges, as Discord's own card shows them.
@@ -39,6 +42,11 @@ export component AccountPopover inherits Rectangle {
     callback settings;
     callback copy-id;
     callback game-duration-due;
+    /// Switch Accounts, as Discord's account menu has it.
+    in property <[SwitchAccount]> accounts;
+    property <bool> accounts-open;
+    callback switch-account(string);
+    callback add-account;
     property <string> presence-label: root.status == "idle" ? "Idle" : root.status == "dnd" ? "Do Not Disturb" : root.status == "invisible" ? "Invisible" : "Online";
     background: root.themed
         ? @linear-gradient(180deg, root.theme-start 0%, ProfileTheme.wash(root.profile.theme-secondary, root.light) 100%)
@@ -140,6 +148,35 @@ export component AccountPopover inherits Rectangle {
                     background: Theme.raised; border-radius: 8px;
                     VerticalLayout {
                         padding: 8px; spacing: 4px;
+                        MenuItem {
+                            height: 40px; text: "Switch Accounts"; icon: @image-url("../icons/users.svg"); submenu: true;
+                            clicked => { root.accounts-open = !root.accounts-open; }
+                        }
+                        if root.accounts-open: VerticalLayout {
+                            spacing: 2px;
+                            for account in root.accounts: Rectangle {
+                                height: 48px; border-radius: 4px;
+                                background: account-touch.has-hover ? Theme.active : transparent;
+                                accessible-role: button; accessible-label: "Switch to " + account.name;
+                                accessible-action-default => { root.switch-account(account.id); }
+                                HorizontalLayout {
+                                    padding-left: 8px; padding-right: 8px; spacing: 10px;
+                                    Middle { Avatar { size: 32px; initial: account.initial; tint: account.tint; picture-url: account.picture-url; } }
+                                    VerticalLayout {
+                                        alignment: center; horizontal-stretch: 1;
+                                        Text { text: account.name; color: Theme.text; font-size: 14px; font-weight: 600; overflow: elide; }
+                                        if account.username != "": Text { text: account.username; color: Theme.muted; font-size: 12px; overflow: elide; }
+                                    }
+                                    if account.current: Middle { Image { source: @image-url("../icons/check.svg"); width: 16px; image-fit: contain; colorize: Theme.accent; } }
+                                }
+                                account-touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { if !account.current { root.switch-account(account.id); } }
+                                }
+                            }
+                            MenuItem { height: 40px; text: "Add an account"; icon: @image-url("../icons/user-plus.svg"); clicked => { root.add-account(); } }
+                        }
+                        Rectangle { height: 1px; background: Theme.line; }
                         if root.user-id != "": MenuItem { height: 40px; text: "Copy User ID"; icon: @image-url("../icons/copy.svg"); clicked => { root.copy-id(); } }
                         MenuItem { height: 40px; text: "User Settings"; icon: @image-url("../icons/settings.svg"); clicked => { root.settings(); } }
                     }

@@ -1114,8 +1114,8 @@ pub(crate) fn scaled_url(
             .is_some_and(|path| path.ends_with(".gif"));
     let format = match (gif, animated) {
         (true, _) => "",
-        (false, true) => "animated=true&format=webp&",
-        (false, false) => "format=webp&",
+        (false, true) => "animated=true&format=webp&quality=lossless&",
+        (false, false) => "format=webp&quality=lossless&",
     };
     Some(format!(
         "{url}{separator}{format}width={}&height={}",
@@ -1678,7 +1678,8 @@ impl Names {
     /// Changes whenever what [`Names::name`], [`Names::avatar`],
     /// [`Names::roles`] or [`Names::render`] give may have.
     pub fn version(&self) -> u64 {
-        self.version
+        // EnhancedDecor's look changes what the account wears.
+        self.version + collectibles::local_version()
     }
 
     pub fn learn_user(&mut self, user: &Value) {
@@ -1989,6 +1990,9 @@ impl Names {
     pub fn decoration_sku(&self, guild: Option<&str>, user: &str) -> Option<Id> {
         let user_id = id(user)?;
         self.touch(user_id);
+        if let Some(sku) = collectibles::local(user_id).and_then(|look| look.decoration) {
+            return Some(sku);
+        }
         guild
             .and_then(|guild| member_key(guild, user))
             .and_then(|key| self.member_decorations.get(&key))
@@ -2016,6 +2020,9 @@ impl Names {
     pub fn plate(&self, guild: Option<&str>, user: &str) -> Option<Plate> {
         let user_id = id(user)?;
         self.touch(user_id);
+        if let Some(plate) = collectibles::local(user_id).and_then(|look| look.plate) {
+            return Some(plate);
+        }
         guild
             .and_then(|guild| member_key(guild, user))
             .and_then(|key| self.member_nameplates.get(&key))
@@ -2631,11 +2638,11 @@ mod tests {
         assert!(message.attachments[0].image);
         assert_eq!(
             message.attachments[0].preview_url.as_deref(),
-            Some("https://media/cat.png?ex=1&animated=true&format=webp&width=550&height=206")
+            Some("https://media/cat.png?ex=1&animated=true&format=webp&quality=lossless&width=550&height=206")
         );
         assert_eq!(
             message.attachments[0].view_url.as_deref(),
-            Some("https://media/cat.png?ex=1&animated=true&format=webp&width=1440&height=540"),
+            Some("https://media/cat.png?ex=1&animated=true&format=webp&quality=lossless&width=1440&height=540"),
             "a small image isn't enlarged"
         );
         // A video plays from the file, its poster from the media proxy.
@@ -2644,7 +2651,7 @@ mod tests {
         assert_eq!(video.video_url.as_deref(), Some("https://cdn/clip.mp4"));
         assert_eq!(
             video.preview_url.as_deref(),
-            Some("https://media/clip.mp4?format=webp&width=550&height=309")
+            Some("https://media/clip.mp4?format=webp&quality=lossless&width=550&height=309")
         );
         assert_eq!(video.dimensions, Some((1920, 1080)));
         assert_eq!(message.attachments[0].video_url, None);

@@ -4,7 +4,7 @@ import { ClientStyle } from "yapfast/style.slint";
 import { ComboBox } from "std-widgets.slint";
 import { ScrollView } from "scrollview.slint";
 import { Theme, Middle, Label, Tip, Popup, Looks, Plugins } from "theme.slint";
-import { ActionButton, IconButton, Avatar, SensitivitySlider, VolumeSlider, TextField, StatusText, AccountLook } from "controls.slint";
+import { ActionButton, IconButton, Avatar, SensitivitySlider, VolumeSlider, TextField, StatusText, AccountLook, PictureStore } from "controls.slint";
 import { DiscordLinkPanel } from "discord.slint";
 import { ChannelRow } from "rail.slint";
 import { Soundboard, SoundRow } from "voice.slint";
@@ -365,7 +365,7 @@ export component SettingsCard inherits Rectangle {
 export component SettingsScreen inherits Rectangle {
     /// The section showing: 0 account, 1 voice and video, 2 messages,
     /// 3 notifications, 4 Discord, 5 sounds, 6 advanced, 7 appearance,
-    /// 8 game activity, 9 about, 10 keybinds, 11 plugins.
+    /// 8 game activity, 9 about, 10 keybinds, 11 plugins, 12 EnhancedDecor.
     in-out property <int> settings-section;
     in property <bool> discord-build;
     in property <bool> preview;
@@ -380,11 +380,15 @@ export component SettingsScreen inherits Rectangle {
     callback edit-profile;
     callback refresh-devices;
     callback copy-text(string);
+    /// Discord's Nitro page, and signing out: rows 100 and 101 of the sidebar.
+    callback open-link(string);
+    callback sign-out;
     property <[SettingsRow]> with-discord: [
         { heading: true, text: "SETTINGS" },
         { text: "My account", icon: @image-url("icons/user.svg"), id: 0 },
         { text: "Appearance", icon: @image-url("icons/palette.svg"), id: 7 },
         { text: "Plugins", icon: @image-url("icons/puzzle.svg"), id: 11 },
+        { text: "EnhancedDecor", icon: @image-url("icons/gem.svg"), id: 12 },
         { text: "Voice & video", icon: @image-url("icons/headphones.svg"), id: 1 },
         { text: "Keybinds", icon: @image-url("icons/keyboard.svg"), id: 10 },
         { text: "Messages", icon: @image-url("icons/message-circle.svg"), id: 2 },
@@ -400,6 +404,7 @@ export component SettingsScreen inherits Rectangle {
         { text: "My account", icon: @image-url("icons/user.svg"), id: 0 },
         { text: "Appearance", icon: @image-url("icons/palette.svg"), id: 7 },
         { text: "Plugins", icon: @image-url("icons/puzzle.svg"), id: 11 },
+        { text: "EnhancedDecor", icon: @image-url("icons/gem.svg"), id: 12 },
         { text: "Voice & video", icon: @image-url("icons/headphones.svg"), id: 1 },
         { text: "Keybinds", icon: @image-url("icons/keyboard.svg"), id: 10 },
         { text: "Messages", icon: @image-url("icons/message-circle.svg"), id: 2 },
@@ -415,11 +420,12 @@ export component SettingsScreen inherits Rectangle {
         SettingsFrame {
             discord-layout: ClientStyle.enabled;
             page-title: root.settings-section == 0 ? "My Account" : root.settings-section == 1 ? "Voice & Video"
-                : root.settings-section == 2 ? "Messages" : root.settings-section == 3 ? "Notifications"
-                : root.settings-section == 4 ? "Discord" : root.settings-section == 5 ? "Sounds"
+                : root.settings-section == 2 ? "Chat" : root.settings-section == 3 ? "Notifications"
+                : root.settings-section == 4 ? "Content & Social" : root.settings-section == 5 ? "Sounds"
                 : root.settings-section == 6 ? "Advanced" : root.settings-section == 7 ? "Appearance"
-                : root.settings-section == 9 ? "About" : root.settings-section == 10 ? "Keybinds"
-                : root.settings-section == 11 ? "Plugins" : "Game Activity";
+                : root.settings-section == 9 ? "What's New" : root.settings-section == 10 ? "Keybinds"
+                : root.settings-section == 11 ? "Plugins"
+                : root.settings-section == 12 ? "Profiles" : "Registered Games";
             account-name: root.account-name; account-initial: root.account-initial;
             account-tint: root.account-tint; account-picture: root.account-picture;
             with-discord: root.discord-build && !root.preview;
@@ -429,6 +435,8 @@ export component SettingsScreen inherits Rectangle {
             rows: root.discord-build && !root.preview ? root.with-discord : root.without-discord;
             selected: root.settings-section;
             chose(id) => {
+                if id == 100 { root.open-link("https://discord.com/nitro"); return; }
+                if id == 101 { root.sign-out(); return; }
                 root.settings-section = id;
                 if id == 1 { root.refresh-devices(); }
             }
@@ -1234,7 +1242,7 @@ export component MessageSettings inherits VerticalLayout {
     in property <bool> discord;
     callback preferences-changed;
     spacing: 16px;
-    SettingsTitle { text: "Messages"; }
+    SettingsTitle { text: "Chat"; }
     // A message as the chosen text size and clock show it.
     Rectangle {
         border-radius: 8px; border-width: 1px; border-color: Theme.line;
@@ -1675,7 +1683,7 @@ export component GameActivitySettings inherits VerticalLayout {
     private property <bool> invalid-game;
     private property <int> editing-game: -1;
     spacing: 16px;
-    SettingsTitle { text: "Game activity"; }
+    SettingsTitle { text: "Registered Games"; }
     SettingsSwitch {
         text: "Share the game you play";
         description: "Discord looks for games among the programs running, and on Linux takes the Rich Presence games send. Your Discord account keeps this setting, so it's the same in Discord's apps.";
@@ -1735,7 +1743,7 @@ export component DiscordSettings inherits VerticalLayout {
     callback sync-discord-reads-toggled(bool);
     callback show-idle-toggled(bool);
     spacing: 16px;
-    SettingsTitle { text: "Discord"; }
+    SettingsTitle { text: "Content & Social"; }
     if root.matrix-build: HorizontalLayout {
         spacing: 12px;
         Label { text: "Unlinking signs Discord out of Discord on this computer."; vertical-alignment: center; horizontal-stretch: 1; }
@@ -1854,6 +1862,48 @@ export component PluginSettings inherits VerticalLayout {
         toggled => { root.preferences-changed(); }
     }
     SettingsSwitch {
+        text: "CleanerDiscord";
+        description: "Hides the GIF and sticker buttons beside the message box.";
+        checked <=> Plugins.cleaner-discord;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "DisableCameras";
+        description: "Your camera can't be turned on in calls.";
+        checked <=> Plugins.disable-cameras;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "PinIcon";
+        description: "Pinned messages say so under their text.";
+        checked <=> Plugins.pin-icon;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "GoogleThat";
+        description: "Type /google and some words to send a link to Google's results for them.";
+        checked <=> Plugins.google-that;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "Translate";
+        description: "A message's menu gets Translate, which shows it in English.";
+        checked <=> Plugins.translate;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "HomeTyping";
+        description: "The DM button at the top of the server list shows dots while someone types to you in a DM.";
+        checked <=> Plugins.home-typing;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
+        text: "KeyboardSounds";
+        description: "Typing in the message box clicks, as a keyboard does.";
+        checked <=> Plugins.keyboard-sounds;
+        toggled => { root.preferences-changed(); }
+    }
+    SettingsSwitch {
         text: "SilentTyping";
         description: "Nobody sees you typing.";
         checked: !root.share-typing; controlled: true;
@@ -1876,5 +1926,101 @@ export component PluginSettings inherits VerticalLayout {
         description: "Lists the channels you can't open, locked.";
         checked: root.show-hidden-channels; controlled: true;
         toggled(shown) => { root.show-hidden-channels-toggled(shown); }
+    }
+}
+
+/// A decoration or nameplate in Discord's shop, as EnhancedDecor offers it.
+export struct DecorItem { sku: string, name: string, picture-url: string }
+
+// Settings: EnhancedDecor, as the Endcord plugin of that name: decorations and
+// nameplates from Discord's shop on your own account, which only you see.
+// See docs/enhanced-decor.md.
+export component DecorSettings inherits VerticalLayout {
+    in property <[DecorItem]> decorations;
+    in property <[DecorItem]> nameplates;
+    /// The SKUs worn now; empty for what the account equips.
+    in property <string> decoration;
+    in property <string> nameplate;
+    in property <string> note;
+    in property <string> initial;
+    in property <color> tint;
+    in property <image> picture;
+    callback search(string);
+    /// A SKU, and whether it's a nameplate.
+    callback choose(string, bool);
+    callback take-off();
+    callback edit-profile();
+    spacing: 16px;
+    SettingsTitle { text: "Profiles"; }
+    HorizontalLayout {
+        alignment: start;
+        ActionButton { text: "Edit Profile"; primary: true; icon: @image-url("icons/pencil.svg"); clicked => { root.edit-profile(); } }
+    }
+    SettingsHeading { text: "ENHANCEDDECOR"; }
+    Label { text: "Wear any avatar decoration or nameplate from Discord's shop. Only you see them, on this computer, on the account you're using now."; }
+    HorizontalLayout {
+        spacing: 8px;
+        TextField {
+            placeholder: "Search the shop"; label: "Search decorations and nameplates"; min-height: 36px; text-size: 14px;
+            edited(text) => { root.search(text); }
+        }
+        ActionButton { text: "Take them off"; small: true; enabled: root.decoration != "" || root.nameplate != ""; clicked => { root.take-off(); } }
+    }
+    if root.note != "": Label { text: root.note; }
+    SettingsHeading { text: "AVATAR DECORATIONS"; }
+    Rectangle {
+        property <length> gap: 8px;
+        property <length> tile: 96px;
+        property <length> tile-height: 104px;
+        property <int> columns: max(1, floor((self.width + self.gap) / (self.tile + self.gap)));
+        height: ceil(root.decorations.length / self.columns) * (self.tile-height + self.gap);
+        accessible-role: list; accessible-label: "Avatar decorations";
+        for item[index] in root.decorations: Rectangle {
+            x: mod(index, parent.columns) * (parent.tile + parent.gap);
+            y: floor(index / parent.columns) * (parent.tile-height + parent.gap);
+            width: parent.tile; height: parent.tile-height;
+            border-radius: 8px;
+            background: item.sku == root.decoration ? Theme.accent-soft : decoration-touch.has-hover ? Theme.hover : Theme.sidebar;
+            border-width: item.sku == root.decoration ? 2px : 0px; border-color: Theme.accent;
+            accessible-role: button; accessible-label: item.name;
+            accessible-action-default => { root.choose(item.sku, false); }
+            VerticalLayout {
+                padding: 8px; spacing: 8px; alignment: center;
+                HorizontalLayout { alignment: center; Avatar { size: 48px; initial: root.initial; tint: root.tint; picture: root.picture; decoration-url: item.picture-url; } }
+                Text { text: item.name; color: Theme.secondary; font-size: 11px; horizontal-alignment: center; overflow: elide; }
+            }
+            decoration-touch := TouchArea { mouse-cursor: pointer; clicked => { root.choose(item.sku, false); } }
+        }
+    }
+    SettingsHeading { text: "NAMEPLATES"; }
+    Rectangle {
+        property <length> gap: 8px;
+        property <int> columns: self.width >= 520px ? 2 : 1;
+        property <length> tile: (self.width - (self.columns - 1) * self.gap) / self.columns;
+        property <length> tile-height: 52px;
+        height: ceil(root.nameplates.length / self.columns) * (self.tile-height + self.gap);
+        accessible-role: list; accessible-label: "Nameplates";
+        for item[index] in root.nameplates: Rectangle {
+            x: mod(index, parent.columns) * (parent.tile + parent.gap);
+            y: floor(index / parent.columns) * (parent.tile-height + parent.gap);
+            width: parent.tile; height: parent.tile-height;
+            border-radius: 8px; clip: true;
+            background: Theme.sidebar;
+            border-width: item.sku == root.nameplate ? 2px : 0px; border-color: Theme.accent;
+            accessible-role: button; accessible-label: item.name;
+            accessible-action-default => { root.choose(item.sku, true); }
+            Image {
+                width: parent.width; height: parent.height; image-fit: cover;
+                source: PictureStore.picture(item.picture-url, PictureStore.revision(item.picture-url));
+                init => { PictureStore.request(item.picture-url); }
+            }
+            Rectangle { background: plate-touch.has-hover ? #00000033 : transparent; }
+            HorizontalLayout {
+                padding-left: 12px; padding-right: 12px; spacing: 8px;
+                Middle { Avatar { size: 28px; initial: root.initial; tint: root.tint; picture: root.picture; } }
+                Text { text: item.name; color: #ffffff; font-size: 13px; font-weight: 600; vertical-alignment: center; overflow: elide; horizontal-stretch: 1; }
+            }
+            plate-touch := TouchArea { mouse-cursor: pointer; clicked => { root.choose(item.sku, true); } }
+        }
     }
 }

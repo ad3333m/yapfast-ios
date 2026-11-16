@@ -146,6 +146,85 @@ pub fn picture(sku: u64) -> String {
     format!("{}/media/v1/collectibles-shop/{sku}/static", ready::cdn())
 }
 
+/// EnhancedDecor: the decoration and nameplate this computer shows on its own
+/// account in place of those it equips, which nobody else sees. See
+/// docs/enhanced-decor.md.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct LocalLook {
+    pub decoration: Option<u64>,
+    pub plate: Option<Plate>,
+}
+
+static LOCAL: std::sync::RwLock<Option<(u64, LocalLook)>> = std::sync::RwLock::new(None);
+static LOCAL_VERSION: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Shows `look` on `user`'s own account here, or what they equip with none.
+pub fn set_local(user: &str, look: Option<LocalLook>) {
+    let entry = user.parse().ok().zip(look);
+    *LOCAL.write().unwrap_or_else(std::sync::PoisonError::into_inner) = entry;
+    LOCAL_VERSION.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// What [`set_local`] shows on `user`, if it's them.
+pub(crate) fn local(user: u64) -> Option<LocalLook> {
+    let local = *LOCAL.read().unwrap_or_else(std::sync::PoisonError::into_inner);
+    local.filter(|(who, _)| *who == user).map(|(_, look)| look)
+}
+
+/// Changes whenever [`set_local`] does, for [`crate::message::Names::version`].
+pub(crate) fn local_version() -> u64 {
+    LOCAL_VERSION.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Something in Discord's shop: a decoration or a nameplate.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ShopItem {
+    pub sku: u64,
+    pub name: String,
+    pub nameplate: bool,
+    /// A nameplate's palette, as Discord names it.
+    pub palette: String,
+}
+
+/// The decorations and nameplates in the shop's categories, as
+/// `/collectibles-categories/v2` gives them, each once.
+pub fn catalog(categories: &Value) -> Vec<ShopItem> {
+    fn walk(value: &Value, name: &str, out: &mut Vec<ShopItem>) {
+        match value {
+            Value::Array(values) => values.iter().for_each(|value| walk(value, name, out)),
+            Value::Object(object) => {
+                let name = object.get("name").and_then(Value::as_str).unwrap_or(name);
+                let kind = object.get("type").and_then(Value::as_u64);
+                let sku = object
+                    .get("sku_id")
+                    .and_then(Value::as_str)
+                    .and_then(|sku| sku.parse().ok());
+                if let (Some(kind @ (0 | 2)), Some(sku), true) =
+                    (kind, sku, object.contains_key("asset"))
+                    && !out.iter().any(|item| item.sku == sku)
+                {
+                    let label = object.get("label").and_then(Value::as_str).unwrap_or(name);
+                    out.push(ShopItem {
+                        sku,
+                        name: label.to_owned(),
+                        nameplate: kind == 2,
+                        palette: object
+                            .get("palette")
+                            .and_then(Value::as_str)
+                            .unwrap_or_default()
+                            .to_owned(),
+                    });
+                }
+                object.values().for_each(|value| walk(value, name, out));
+            }
+            _ => {}
+        }
+    }
+    let mut out = Vec::new();
+    walk(categories, "", &mut out);
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::json;

@@ -60,30 +60,39 @@ export component SettingsNavigation inherits Rectangle {
             content-height: entries.preferred-height;
             entries := VerticalLayout {
                 padding-left: 16px; padding-right: 16px; padding-bottom: 16px; spacing: 0px; alignment: start;
+                // As Discord's sidebar: its sections and names, each on the page
+                // of Yapfast's that does the same. 100 and 101 aren't pages:
+                // Nitro opens Discord's Nitro page, Log Out signs out.
                 for entry in [
-                    { heading: true, text: "Account", id: -1 },
+                    { heading: true, text: "User Settings", id: -1 },
                     { text: "My Account", icon: @image-url("../icons/user.svg"), id: 0 },
-                    { heading: true, text: "Experience", id: -1 },
+                    { text: "Profiles", icon: @image-url("../icons/user-pen.svg"), id: 12 },
+                    { text: "Content & Social", icon: @image-url("../icons/users.svg"), id: 4 },
+                    { heading: true, text: "Billing Settings", id: -1 },
+                    { text: "Nitro", icon: @image-url("../icons/gem.svg"), id: 100 },
+                    { heading: true, text: "App Settings", id: -1 },
+                    { text: "Appearance", icon: @image-url("../icons/palette.svg"), id: 7 },
                     { text: "Voice & Video", icon: @image-url("../icons/mic.svg"), id: 1 },
-                    { text: "Messages", icon: @image-url("../icons/message-circle.svg"), id: 2 },
+                    { text: "Chat", icon: @image-url("../icons/message-circle.svg"), id: 2 },
                     { text: "Notifications", icon: @image-url("../icons/bell.svg"), id: 3 },
                     { text: "Sounds", icon: @image-url("../icons/volume-2.svg"), id: 5 },
-                    { text: "Appearance", icon: @image-url("../icons/palette.svg"), id: 7 },
-                    { text: "Plugins", icon: @image-url("../icons/puzzle.svg"), id: 11 },
-                    { heading: true, text: "App Settings", id: -1 },
-                    { text: "Discord", icon: @image-url("../icons/discord.svg"), id: 4 },
-                    { text: "Game Activity", icon: @image-url("../icons/play.svg"), id: 8 },
                     { text: "Keybinds", icon: @image-url("../icons/keyboard.svg"), id: 10 },
                     { text: "Advanced", icon: @image-url("../icons/settings.svg"), id: 6 },
-                    { text: "About", icon: @image-url("../icons/help-circle.svg"), id: 9 },
+                    { heading: true, text: "Activity Settings", id: -1 },
+                    { text: "Registered Games", icon: @image-url("../icons/gamepad.svg"), id: 8 },
+                    { heading: true, text: "Endcord", id: -1 },
+                    { text: "Plugins", icon: @image-url("../icons/puzzle.svg"), id: 11 },
+                    { heading: true, text: "Other", id: -1 },
+                    { text: "What's New", icon: @image-url("../icons/help-circle.svg"), id: 9 },
+                    { text: "Log Out", icon: @image-url("../icons/log-out.svg"), id: 101 },
                 ]: VerticalLayout {
                     if entry.heading && root.query == "": VerticalLayout {
-                        padding-top: entry.text == "Account" ? 0px : 16px;
-                        height: entry.text == "Account" ? 24px : 40px;
+                        padding-top: entry.text == "User Settings" ? 0px : 16px;
+                        height: entry.text == "User Settings" ? 24px : 40px;
                         Text { x: 8px; text: entry.text; color: Theme.muted; font-size: 12px; vertical-alignment: center; }
                     }
-                    if !entry.heading && root.matches(entry.text) && (root.with-discord || (entry.id != 4 && entry.id != 8)): ChannelRow {
-                        height: 40px; text: entry.text; icon: entry.icon;
+                    if !entry.heading && root.matches(entry.text) && (root.with-discord || (entry.id != 4 && entry.id != 8 && entry.id != 12 && entry.id != 100)): ChannelRow {
+                        height: 40px; text: entry.text; icon: entry.icon; danger: entry.id == 101;
                         selected: root.selected == entry.id;
                         fresh: NewTags.section-new(entry.id, NewTags.revision);
                         clicked => { root.chose(entry.id); }

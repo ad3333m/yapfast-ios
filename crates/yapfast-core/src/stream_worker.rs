@@ -46,6 +46,87 @@ use crate::{
     voice::{Resolution, StreamQuality, StreamStats},
 };
 
+// libwebrtc has no desktop capturer on iOS: there the stand-in lists no
+// screen or window, and capture can't start. See docs/ios.md.
+#[cfg(not(target_os = "ios"))]
+use livekit::webrtc::desktop_capturer;
+
+#[cfg(target_os = "ios")]
+mod desktop_capturer {
+    #[derive(Debug, Copy, Clone, PartialEq)]
+    pub enum DesktopCaptureSourceType {
+        Screen,
+        Window,
+    }
+
+    pub enum CaptureError {
+        Temporary,
+        Permanent,
+    }
+
+    pub struct DesktopCapturerOptions;
+
+    impl DesktopCapturerOptions {
+        pub fn new(_: DesktopCaptureSourceType) -> Self {
+            Self
+        }
+
+        pub fn set_include_cursor(&mut self, _: bool) {}
+    }
+
+    pub struct CaptureSource;
+
+    impl CaptureSource {
+        pub fn id(&self) -> u64 {
+            0
+        }
+
+        pub fn title(&self) -> String {
+            String::new()
+        }
+    }
+
+    pub struct DesktopFrame;
+
+    impl DesktopFrame {
+        pub fn width(&self) -> i32 {
+            0
+        }
+
+        pub fn height(&self) -> i32 {
+            0
+        }
+
+        pub fn stride(&self) -> u32 {
+            0
+        }
+
+        pub fn data(&self) -> &[u8] {
+            &[]
+        }
+    }
+
+    pub struct DesktopCapturer;
+
+    impl DesktopCapturer {
+        pub fn new(_: DesktopCapturerOptions) -> Option<Self> {
+            None
+        }
+
+        pub fn get_source_list(&self) -> Vec<CaptureSource> {
+            Vec::new()
+        }
+
+        pub fn start_capture<T>(&mut self, _: Option<CaptureSource>, _: T)
+        where
+            T: FnMut(Result<DesktopFrame, CaptureError>) + Send + 'static,
+        {
+        }
+
+        pub fn capture_frame(&mut self) {}
+    }
+}
+
 /// The argument that starts Yapfast as a stream worker.
 pub const ARGUMENT: &str = "--stream-worker";
 
@@ -213,7 +294,7 @@ fn screens_and_windows() -> Vec<Shareable> {
     if portal_picks() {
         return Vec::new();
     }
-    use livekit::webrtc::desktop_capturer::DesktopCaptureSourceType;
+    use desktop_capturer::DesktopCaptureSourceType;
     let screens = sources(DesktopCaptureSourceType::Screen);
     let count = screens.len();
     let screens = screens
@@ -247,10 +328,10 @@ fn screens_and_windows() -> Vec<Shareable> {
 }
 
 fn sources(
-    kind: livekit::webrtc::desktop_capturer::DesktopCaptureSourceType,
-) -> Vec<livekit::webrtc::desktop_capturer::CaptureSource> {
-    livekit::webrtc::desktop_capturer::DesktopCapturer::new(
-        livekit::webrtc::desktop_capturer::DesktopCapturerOptions::new(kind),
+    kind: desktop_capturer::DesktopCaptureSourceType,
+) -> Vec<desktop_capturer::CaptureSource> {
+    desktop_capturer::DesktopCapturer::new(
+        desktop_capturer::DesktopCapturerOptions::new(kind),
     )
     .map(|capturer| capturer.get_source_list())
     .unwrap_or_default()
@@ -1111,7 +1192,7 @@ fn capture_screen(
 /// A capturer sending a screen's, window's or camera's frames to the sink.
 struct Capture {
     /// A screen's or window's, which gives a frame when asked.
-    capturer: Option<livekit::webrtc::desktop_capturer::DesktopCapturer>,
+    capturer: Option<desktop_capturer::DesktopCapturer>,
     /// A camera's, which sends its frames from its own thread.
     _camera: Option<crate::camera::Camera>,
     captured: Arc<Mutex<Captured>>,
@@ -1130,7 +1211,7 @@ impl Capture {
         if let Source::Camera(id) = &source {
             return Self::camera(id, sink, max_width, max_height);
         }
-        use livekit::webrtc::desktop_capturer::{
+        use desktop_capturer::{
             CaptureError, DesktopCaptureSourceType, DesktopCapturer, DesktopCapturerOptions,
         };
         let portal = portal_picks();
@@ -1284,7 +1365,7 @@ fn copy_planes(frame: &crate::picture::I420<'_>, picture: &mut I420Buffer) {
 }
 
 /// A captured frame as an I420 picture of its size.
-fn picture_of(frame: &livekit::webrtc::desktop_capturer::DesktopFrame) -> I420Buffer {
+fn picture_of(frame: &desktop_capturer::DesktopFrame) -> I420Buffer {
     let (width, height) = (frame.width().max(1) as u32, frame.height().max(1) as u32);
     let mut picture = I420Buffer::new(width, height);
     let (y_stride, u_stride, v_stride) = picture.strides();
@@ -1345,7 +1426,7 @@ fn glance(
 
 /// A picture of the screen listed by `id`, at its own size.
 fn glance_at(id: u64, stop: &AtomicBool) -> Result<Option<I420Buffer>> {
-    use livekit::webrtc::desktop_capturer::{
+    use desktop_capturer::{
         CaptureError, DesktopCaptureSourceType, DesktopCapturer, DesktopCapturerOptions,
     };
     let mut capturer = DesktopCapturer::new(DesktopCapturerOptions::new(

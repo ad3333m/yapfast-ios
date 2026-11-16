@@ -1,6 +1,6 @@
 import { ClientStyle } from "yapfast/style.slint";
 import { ListView, ScrollView } from "scrollview.slint";
-import { Theme, Tip, ReactionHover, Middle, Label, Twemoji } from "theme.slint";
+import { Theme, Tip, ReactionHover, Middle, Label, Twemoji, Plugins } from "theme.slint";
 import { ActionButton, IconButton, Avatar, Motion, Picture, UprightVolumeSlider, PictureStore, EmojiAnimations, Skeleton, SpoilerCover, MenuItem, TextField, ContextMenu, MenuRow, StyledName, NameStyleRow, ServerTagChip } from "controls.slint";
 import { FavoriteStar, GifFavorites } from "gifs.slint";
 import { Composer } from "composer-field.slint";
@@ -1369,6 +1369,8 @@ export component MessageMenu inherits Rectangle {
     in property <string> message-id;
     in property <bool> can-mark-unread;
     callback mark-unread(string);
+    /// The Translate plugin: translates the message into English.
+    callback translate(string);
     /// The open channel's apps' message commands, which "Apps" lists.
     in property <[CommandChoice]> app-commands;
     /// The Apps submenu opens left of the menu, for want of room on its
@@ -1497,6 +1499,11 @@ export component MessageMenu inherits Rectangle {
                 text: "Mark Unread"; icon: @image-url("icons/message-circle.svg");
                 hovered => { root.apps-open = false; }
                 clicked => { root.mark-unread(root.menu-message.item); }
+            }
+            if Plugins.translate && root.menu-message.body != "": MenuItem {
+                text: "Translate"; icon: @image-url("icons/message-square-text.svg");
+                hovered => { root.apps-open = false; }
+                clicked => { root.translate(root.menu-message.item); }
             }
             if root.message-link != "": MenuItem {
                 text: "Copy Message Link"; icon: @image-url("icons/link.svg");
@@ -3140,6 +3147,12 @@ export component MessageContent inherits VerticalLayout {
                 font-italic: !message.timed-out; wrap: word-wrap;
             }
             if message.edited && !message.deleted && !root.editing: Text { text: "(edited)"; color: Theme.muted; font-size: 12px; }
+            // PinIcon: a pinned message says so.
+            if message.pinned && Plugins.pin-icon: HorizontalLayout {
+                spacing: 4px; alignment: start;
+                Image { source: @image-url("icons/pin.svg"); width: 12px; height: 12px; colorize: Theme.muted; y: 2px; }
+                Text { text: "Pinned"; color: Theme.muted; font-size: 12px; }
+            }
             // Fixed-size children sit beside a spacer, so they do not cap the column's width.
             if message.images.length > 0: MessageGallery {
                 images: message.images; gallery-width: message.gallery-width; gallery-height: message.gallery-height;
