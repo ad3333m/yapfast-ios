@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   ipa:
-    runs-on: macos-latest
+    runs-on: macos-15-intel  # the Apple Silicon queue was hours long
     steps:
       - uses: actions/checkout@v5
       - run: rustup show && rustup target add aarch64-apple-ios
