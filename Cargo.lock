@@ -11537,6 +11537,7 @@ name = "yapfast"
 version = "0.4.1"
 dependencies = [
  "anyhow",
+ "apple-native-keyring-store",
  "arboard",
  "emojis",
  "futures-util",

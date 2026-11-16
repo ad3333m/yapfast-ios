@@ -11,3 +11,6 @@ What the desktop build has and iOS doesn't:
   and every dialog picks nothing.
 - Pictures on the clipboard: arboard has no iOS backend; copying a picture
   says so in the log and pasting one does nothing.
+- Skia draws through Metal, which Slint's renderer reaches only by wgpu, so
+  the iPhone build turns on its `wgpu-30` feature as Windows does; the
+  login sits in the keychain through keyring's `protected` store.
