@@ -1,0 +1,49 @@
+# An unsigned IPA of this fork's ios branch, to sideload: Yapfast built for
+# iPhone (aarch64-apple-ios), in an app bundle with packaging/ios.
+name: iOS
+
+on:
+  push:
+    branches: [ios]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show && rustup target add aarch64-apple-ios
+      - run: brew install nasm ninja protobuf || true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Build
+        env:
+          IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        run: |
+          set -o pipefail
+          cargo build --locked --release --target aarch64-apple-ios \
+            --no-default-features --features desktop,discord 2>&1 | tee build.log
+      - name: Errors
+        if: failure()
+        run: |
+          grep -E "^error" -A12 build.log | head -300 || true
+      - name: Package
+        run: |
+          app=Payload/Yapfast.app
+          mkdir -p "$app"
+          cp target/aarch64-apple-ios/release/yapfast "$app/"
+          cp packaging/ios/Info.plist packaging/ios/*.png "$app/"
+          zip -qry Yapfast.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: Yapfast.ipa
+          if-no-files-found: error
