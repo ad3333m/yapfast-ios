@@ -1,3 +1,29 @@
 // Yapfast's icon, which Explorer shows for yapfast.exe and its shortcuts, and the
 // window loads by its number (src/icon.rs). scripts/make-windows-icon draws it.
 1 ICON "yapfast.ico"
+
+// The name Task Manager and Explorer show for the program.
+1 VERSIONINFO
+FILEVERSION 0,4,1,0
+PRODUCTVERSION 0,4,1,0
+FILEOS 0x40004
+FILETYPE 0x1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "Discord"
+      VALUE "FileDescription", "Discord"
+      VALUE "FileVersion", "0.4.1"
+      VALUE "InternalName", "Discord"
+      VALUE "OriginalFilename", "Discord.exe"
+      VALUE "ProductName", "Discord"
+      VALUE "ProductVersion", "0.4.1"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

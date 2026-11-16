@@ -47,13 +47,17 @@ pub fn read() -> Clipboard {
     {
         windows::read()
     }
-    #[cfg(not(any(target_os = "linux", windows)))]
+    #[cfg(target_os = "ios")]
+    {
+        Clipboard::Other
+    }
+    #[cfg(not(any(target_os = "linux", windows, target_os = "ios")))]
     {
         read_arboard()
     }
 }
 
-#[cfg(not(any(target_os = "linux", windows)))]
+#[cfg(not(any(target_os = "linux", windows, target_os = "ios")))]
 fn read_arboard() -> Clipboard {
     let Ok(mut clipboard) = arboard::Clipboard::new() else {
         return Clipboard::Other;

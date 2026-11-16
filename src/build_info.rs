@@ -112,9 +112,9 @@ impl<'a> BuildInfo<'a> {
     /// release it grew from.
     pub fn headline(&self) -> String {
         match (self.channel(), self.commit) {
-            (Channel::Development, Some(commit)) => format!("Yapfast {commit}"),
-            (Channel::Development, None) => "Yapfast".into(),
-            _ => format!("Yapfast v{}", self.version),
+            (Channel::Development, Some(commit)) => format!("Discord {commit}"),
+            (Channel::Development, None) => "Discord".into(),
+            _ => format!("Discord v{}", self.version),
         }
     }
 
@@ -134,7 +134,7 @@ impl<'a> BuildInfo<'a> {
 
     /// Everything on one line, for a bug report and `--version`.
     pub fn summary(&self) -> String {
-        let version = format!("Yapfast v{}", self.version);
+        let version = format!("Discord v{}", self.version);
         [
             Some(version.as_str()),
             Some(self.channel().label()),
@@ -167,12 +167,12 @@ mod tests {
     fn a_release_without_a_prerelease_part_is_stable() {
         let info = build("0.4.0", true, Some(COMMIT_FULL), Some("2026-11-07"));
         assert_eq!(info.channel(), Channel::Stable);
-        assert_eq!(info.headline(), "Yapfast v0.4.0");
+        assert_eq!(info.headline(), "Discord v0.4.0");
         assert_eq!(info.channel().label(), "Stable");
         assert_eq!(info.details(), "59391f96 · 2026-11-07");
         assert_eq!(
             info.summary(),
-            "Yapfast v0.4.0 · Stable · 59391f96 · 2026-11-07"
+            "Discord v0.4.0 · Stable · 59391f96 · 2026-11-07"
         );
     }
 
@@ -185,11 +185,11 @@ mod tests {
             Some("2026-11-07"),
         );
         assert_eq!(info.channel(), Channel::Nightly);
-        assert_eq!(info.headline(), "Yapfast v0.4.0-nightly.20261107.12");
+        assert_eq!(info.headline(), "Discord v0.4.0-nightly.20261107.12");
         assert_eq!(info.details(), "59391f96 · 2026-11-07");
         assert_eq!(
             info.summary(),
-            "Yapfast v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07"
+            "Discord v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07"
         );
     }
 
@@ -214,24 +214,24 @@ mod tests {
         assert_eq!(info.channel(), Channel::Development);
         assert_eq!(info.channel().label(), "Development build");
         assert_eq!(info.channel().tone(), 2);
-        assert_eq!(info.headline(), "Yapfast 59391f96");
+        assert_eq!(info.headline(), "Discord 59391f96");
         // The commit is in the headline already.
         assert_eq!(info.details(), "2026-11-09");
         assert_eq!(
             info.summary(),
-            "Yapfast v0.4.0 · Development build · 59391f96 · 2026-11-09"
+            "Discord v0.4.0 · Development build · 59391f96 · 2026-11-09"
         );
     }
 
     #[test]
     fn a_build_that_knows_no_commit_leaves_it_out() {
         let development = build("0.4.0", false, None, None);
-        assert_eq!(development.headline(), "Yapfast");
+        assert_eq!(development.headline(), "Discord");
         assert_eq!(development.details(), "");
-        assert_eq!(development.summary(), "Yapfast v0.4.0 · Development build");
+        assert_eq!(development.summary(), "Discord v0.4.0 · Development build");
         let release = build("0.4.0", true, None, Some("2026-11-07"));
         assert_eq!(release.details(), "2026-11-07");
-        assert_eq!(release.summary(), "Yapfast v0.4.0 · Stable · 2026-11-07");
+        assert_eq!(release.summary(), "Discord v0.4.0 · Stable · 2026-11-07");
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn this_build_describes_itself() {
         let info = current();
-        assert!(info.summary().starts_with("Yapfast v"));
+        assert!(info.summary().starts_with("Discord v"));
         assert!(info.summary().contains(info.channel().label()));
     }
 }

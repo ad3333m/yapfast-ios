@@ -317,7 +317,7 @@ impl Staged {
         let metadata = std::fs::metadata(&path)
             .ok()
             .filter(std::fs::Metadata::is_file)
-            .ok_or_else(|| format!("Yapfast could not read {name}."))?;
+            .ok_or_else(|| format!("Discord could not read {name}."))?;
         if metadata.len() > limit {
             return Err(format!(
                 "{name} is {}; files here can be up to {}.",
@@ -5271,7 +5271,7 @@ pub async fn run(
     #[cfg(not(feature = "matrix"))]
     {
         let refused = match start {
-            Start::Login { .. } => Some("This build of Yapfast has no Matrix sign-in."),
+            Start::Login { .. } => Some("This build of Discord has no Matrix sign-in."),
             #[cfg(feature = "discord")]
             Start::Restore if discord.is_none() => Some(
                 discord_error
@@ -5279,7 +5279,7 @@ pub async fn run(
                     .unwrap_or("Link your Discord account to sign in."),
             ),
             #[cfg(not(feature = "discord"))]
-            Start::Restore => Some("This build of Yapfast has no networks."),
+            Start::Restore => Some("This build of Discord has no networks."),
             #[allow(unreachable_patterns)]
             _ => None,
         };
@@ -5296,7 +5296,7 @@ pub async fn run(
     };
     let Ok(mut voice) = voice::Controller::start_remembering(calls, Some(remembered)) else {
         let _ = events.send(Event::Error(
-            "Could not start the voice worker. Restart Yapfast and retry.".into(),
+            "Could not start the voice worker. Restart Discord and retry.".into(),
         ));
         return;
     };
@@ -5763,7 +5763,7 @@ mod tests {
             plain_snippet(
                 "Welcome to **Yapfast**, with `code` and a [link](https://matrix.org)\nsecond line"
             ),
-            "Welcome to Yapfast, with code and a link"
+            "Welcome to Discord, with code and a link"
         );
         assert_eq!(plain_snippet("plain"), "plain");
         assert_eq!(plain_snippet(""), "");

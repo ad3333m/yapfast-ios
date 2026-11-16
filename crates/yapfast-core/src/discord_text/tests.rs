@@ -1054,7 +1054,7 @@ async fn earlier_history_loads_a_page_at_a_time_until_the_first_message() {
             .next()
             .unwrap()
             .content
-            .starts_with("Welcome to **Yapfast**"),
+            .starts_with("Welcome to **Discord**"),
         "the channel's first message is loaded"
     );
     // Once it is, asking again says so at once.
@@ -1332,7 +1332,7 @@ async fn a_jump_shows_the_messages_around_one_then_newer_pages_to_the_present() 
         .await
         .unwrap()
         .into_iter()
-        .find(|message| message.content.starts_with("Welcome to **Yapfast**"))
+        .find(|message| message.content.starts_with("Welcome to **Discord**"))
         .expect("the fake pins Bob's welcome")
         .id;
     let run = |command: Command, channels: &mut Channels| {
@@ -1874,7 +1874,7 @@ async fn a_server_channels_pins_and_search_show_its_members() {
     let (total, hits) =
         found(run(Some(search("welcome from:bob in:#general has:link"))).await).unwrap();
     assert_eq!(total, 1, "Bob's welcome carries a link");
-    assert!(hits[0].message.body.starts_with("Welcome to **Yapfast**"));
+    assert!(hits[0].message.body.starts_with("Welcome to **Discord**"));
     let refused = found(run(Some(search("from:nobody"))).await).unwrap_err();
     assert!(refused.contains("nobody"), "{refused}");
     let refused = found(run(Some(search("in:nowhere"))).await).unwrap_err();

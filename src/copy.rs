@@ -4,6 +4,7 @@
 //! On Linux the clipboard holds a picture only while the app that copied it
 //! answers for it, so a thread does that until something else is copied.
 
+#[cfg(not(target_os = "ios"))]
 use std::borrow::Cow;
 
 /// Puts `file`, a picture as it was downloaded, on the clipboard.
@@ -20,6 +21,12 @@ pub fn picture(file: Vec<u8>) {
     }
 }
 
+#[cfg(target_os = "ios")]
+fn copy(_: &[u8]) -> anyhow::Result<()> {
+    anyhow::bail!("the iPhone build doesn't copy pictures yet")
+}
+
+#[cfg(not(target_os = "ios"))]
 fn copy(file: &[u8]) -> anyhow::Result<()> {
     let mut reader = image::ImageReader::new(std::io::Cursor::new(file)).with_guessed_format()?;
     let mut limits = image::Limits::default();

@@ -29,7 +29,7 @@ jobs:
           IPHONEOS_DEPLOYMENT_TARGET: "15.0"
         run: |
           set -o pipefail
-          cargo build --locked --release --target aarch64-apple-ios \
+          cargo build --locked --keep-going --release --target aarch64-apple-ios \
             --no-default-features --features desktop,discord 2>&1 | tee build.log
       - name: Errors
         if: failure()

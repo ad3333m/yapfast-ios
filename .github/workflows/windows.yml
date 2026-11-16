@@ -52,7 +52,9 @@ jobs:
             .local/windows/skia-static-production/prepared
           key: windows-skia-${{ hashFiles('nix/flake.lock', 'nix/prepare-windows-skia.py', 'nix/prepare-skia-native.py', 'nix/skia-windows-builder/**') }}
       - if: steps.skia.outputs.cache-hit != 'true'
-        run: mkdir -p .local/windows && nix develop path:./nix#windows --command python3 nix/prepare-windows-skia.py
+        run: |
+          mkdir -p .local/windows
+          nix develop path:./nix#windows --command bash -c 'rustup target add x86_64-pc-windows-msvc && python3 nix/prepare-windows-skia.py'
       - if: steps.skia.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:

@@ -428,7 +428,7 @@ mod tests {
         let others = inputs.lock().unwrap().len();
         stop.store(true, Ordering::Relaxed);
         capture.join().unwrap();
-        assert_eq!(ours, 0, "Yapfast's own playback was captured");
+        assert_eq!(ours, 0, "Discord's own playback was captured");
         eprintln!("monitored {others} other applications' streams");
     }
 

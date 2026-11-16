@@ -264,7 +264,7 @@ impl Dave {
                             .as_ref()
                             .is_some_and(|session| session.status() != SessionStatus::ACTIVE) =>
                     {
-                        tracing::info!(?error, "DAVE proposals for a group Yapfast isn't in yet");
+                        tracing::info!(?error, "DAVE proposals for a group Discord isn't in yet");
                     }
                     Some(Err(error)) => {
                         tracing::warn!(?error, "could not process MLS proposals");
@@ -287,7 +287,7 @@ impl Dave {
                 }) {
                     tracing::info!(
                         transition_id = event.transition_id,
-                        "a DAVE commit before Yapfast is in the group; waiting for its welcome"
+                        "a DAVE commit before Discord is in the group; waiting for its welcome"
                     );
                     return vec![];
                 }
@@ -713,7 +713,7 @@ mod tests {
                 None,
             )
             .unwrap()
-            .expect("the friend commits Yapfast's addition");
+            .expect("the friend commits Discord's addition");
 
         let out = dave.handle(Event::from(
             serenity_voice_model::payload::DaveMlsAnnounceCommitTransition {
@@ -724,7 +724,7 @@ mod tests {
         assert!(out.is_empty(), "no refusal, no new key package: {out:?}");
         let out = dave.handle(Event::from(serenity_voice_model::payload::DaveMlsWelcome {
             transition_id: 3,
-            welcome: commit.welcome.expect("a welcome for Yapfast"),
+            welcome: commit.welcome.expect("a welcome for Discord"),
         }));
         assert!(
             matches!(out.as_slice(), [Out::Json(Event::DaveTransitionReady(ready))] if ready.transition_id == 3),

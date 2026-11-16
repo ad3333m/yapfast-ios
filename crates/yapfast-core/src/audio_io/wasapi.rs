@@ -134,7 +134,7 @@ pub fn full_speed(on: bool) {
         )
     };
     if let Err(error) = set {
-        tracing::debug!(%error, "Windows keeps its power throttling for Yapfast");
+        tracing::debug!(%error, "Windows keeps its power throttling for Discord");
     }
     // SAFETY: plain calls, each timeBeginPeriod balanced by a timeEndPeriod.
     unsafe {

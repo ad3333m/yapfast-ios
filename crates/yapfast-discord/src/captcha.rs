@@ -257,14 +257,14 @@ fn page(captcha: &Captcha) -> String {
     if (rqdata) hcaptcha.setData(id, {{ rqdata }});
   }}
   async function solved(solution) {{
-    note.textContent = "Sending it to Yapfast...";
+    note.textContent = "Sending it to Discord...";
     try {{
       const answer = await fetch(location.pathname, {{ method: "POST", body: solution }});
       note.textContent = answer.ok
-        ? "Done. You can close this page and go back to Yapfast."
-        : "Yapfast didn't take it. Start linking again in Yapfast.";
+        ? "Done. You can close this page and go back to Discord."
+        : "Discord didn't take it. Start linking again in Discord.";
     }} catch {{
-      note.textContent = "Yapfast stopped waiting. Start linking again in Yapfast.";
+      note.textContent = "Discord stopped waiting. Start linking again in Discord.";
     }}
   }}
 </script>

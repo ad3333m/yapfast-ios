@@ -441,7 +441,7 @@ impl Controller {
                     Err(_) => {
                         states.send_modify(|state| {
                             state.error =
-                                Some("Could not start voice. Restart Yapfast and try again.".into())
+                                Some("Could not start voice. Restart Discord and try again.".into())
                         });
                     }
                 }
@@ -598,7 +598,7 @@ async fn join(
         .await;
     #[cfg(not(feature = "matrix"))]
     Err(anyhow::anyhow!(
-        "This build of Yapfast has no Matrix voice."
+        "This build of Discord has no Matrix voice."
     ))
 }
 

@@ -445,7 +445,7 @@ impl Adapter {
                 "Backup code",
             ),
             Some(MfaMethod::Passkey) | None => (
-                "Discord asks for a passkey or security key, which Yapfast can't use. Confirm in Discord's app, then try again."
+                "Discord asks for a passkey or security key, which Discord can't use. Confirm in Discord's app, then try again."
                     .to_owned(),
                 "",
             ),

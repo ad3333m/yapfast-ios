@@ -3517,11 +3517,11 @@ fn a_picture_with_an_address_is_copied_to_the_clipboard() {
         [Effect::CopyPicture(picture)] if picture == b"png"
     ));
     app.apply(Event::Copied(Err(
-        "Yapfast couldn't copy this picture. Save it instead.",
+        "Discord couldn't copy this picture. Save it instead.",
     )));
     assert_eq!(
         app.state.notice.as_deref(),
-        Some("Yapfast couldn't copy this picture. Save it instead.")
+        Some("Discord couldn't copy this picture. Save it instead.")
     );
 }
 

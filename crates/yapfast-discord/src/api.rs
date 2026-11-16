@@ -2351,13 +2351,13 @@ impl Api {
                 Ok(()) => {}
                 Err(Stopped::Unauthorized) => bail!(UNAUTHORIZED),
                 Err(Stopped::Refused(wait)) => bail!(
-                    "Discord refused too many of Yapfast's requests lately, so Yapfast stopped asking. Try again in {} min.",
+                    "Discord refused too many requests lately, so it stopped asking. Try again in {} min.",
                     wait.as_secs().div_ceil(60)
                 ),
             }
             if let Err(wait) = self.limits.acquire(&route).await {
                 bail!(
-                    "Discord asks Yapfast to slow down. Try again in {} s.",
+                    "Discord asks to slow down. Try again in {} s.",
                     wait.as_secs()
                 );
             }
@@ -2376,7 +2376,7 @@ impl Api {
                 // Discord's answer to a login it no longer takes, rather than
                 // to one request.
                 if body["code"] == 0 {
-                    tracing::warn!("Discord refused the login; Yapfast stops asking");
+                    tracing::warn!("Discord refused the login; Discord stops asking");
                     self.refusals.unauthorized();
                 }
                 return Err(refusal(status, &body));
@@ -2478,7 +2478,7 @@ fn refusal(status: StatusCode, body: &Value) -> anyhow::Error {
         (_, Some(UNKNOWN_EVENT)) => anyhow!("This event doesn't exist."),
         (_, Some(mfa::INVALID_MFA)) => anyhow!("That didn't work. Check it and try again."),
         (_, Some(mfa::MFA_REQUIRED)) => {
-            anyhow!("Discord asks for two-factor authentication, which Yapfast can't do here.")
+            anyhow!("Discord asks for two-factor authentication, which Discord can't do here.")
         }
         (_, Some(MISSING_PERMISSIONS)) => {
             anyhow!("You don't have permission to do that in this server.")
@@ -2502,7 +2502,7 @@ fn refusal(status: StatusCode, body: &Value) -> anyhow::Error {
             }
             StatusCode::TOO_MANY_REQUESTS => {
                 let wait = body["retry_after"].as_f64().unwrap_or(1.0).ceil();
-                anyhow!("Discord asks Yapfast to slow down. Try again in {wait} s.")
+                anyhow!("Discord asks to slow down. Try again in {wait} s.")
             }
             StatusCode::BAD_REQUEST if body["captcha_key"].is_array() => {
                 let message = "Discord asked for a captcha. Do this in the Discord app for now.";

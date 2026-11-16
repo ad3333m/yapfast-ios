@@ -179,7 +179,7 @@ mod linux {
             Ok(handle) => handle,
             Err(error) => {
                 online.store(false, Ordering::Relaxed);
-                tracing::info!(%error, "no tray icon; closing the window quits Yapfast");
+                tracing::info!(%error, "no tray icon; closing the window quits Discord");
                 return;
             }
         };
@@ -220,7 +220,7 @@ mod linux {
         }
 
         fn title(&self) -> String {
-            "Yapfast".into()
+            "Discord".into()
         }
 
         fn category(&self) -> ksni::Category {
@@ -233,7 +233,7 @@ mod linux {
 
         fn tool_tip(&self) -> ksni::ToolTip {
             ksni::ToolTip {
-                title: "Yapfast".into(),
+                title: "Discord".into(),
                 description: if self.shown.unread {
                     "Unread messages".into()
                 } else {
@@ -256,7 +256,7 @@ mod linux {
                 }
                 .into()
             };
-            let mut menu = vec![item("Open Yapfast", Choice::Open)];
+            let mut menu = vec![item("Open Discord", Choice::Open)];
             if self.shown.call {
                 menu.push(item("Disconnect", Choice::Disconnect));
             }
@@ -358,7 +358,7 @@ mod windows {
                 let window = CreateWindowExW(
                     0,
                     w!("YapfastTray"),
-                    w!("Yapfast"),
+                    w!("Discord"),
                     WS_OVERLAPPED,
                     0,
                     0,
@@ -385,12 +385,12 @@ mod windows {
                     hIcon: icons[0],
                     ..std::mem::zeroed()
                 };
-                for (place, unit) in data.szTip.iter_mut().zip("Yapfast".encode_utf16()) {
+                for (place, unit) in data.szTip.iter_mut().zip("Discord".encode_utf16()) {
                     *place = unit;
                 }
                 let added = notify(NIM_ADD, &data);
                 if !added {
-                    tracing::info!("no notification area; closing the window quits Yapfast");
+                    tracing::info!("no notification area; closing the window quits Discord");
                 }
                 ICON.set(Some(Icon {
                     data,
@@ -513,7 +513,7 @@ mod windows {
         // this thread.
         let picked = unsafe {
             let menu = CreatePopupMenu();
-            AppendMenuW(menu, MF_STRING, OPEN, w!("Open Yapfast"));
+            AppendMenuW(menu, MF_STRING, OPEN, w!("Open Discord"));
             if call {
                 AppendMenuW(menu, MF_STRING, DISCONNECT, w!("Disconnect"));
             }

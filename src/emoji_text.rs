@@ -76,7 +76,7 @@ pub fn target(link: &str) -> Option<Target> {
 }
 
 /// The family Twemoji's font is registered as.
-pub const FAMILY: &str = "Yapfast Twemoji";
+pub const FAMILY: &str = "Discord Twemoji";
 
 /// Puts Twemoji's font in text's fallback chain, as the one emoji font: an
 /// emoji typed into any text, a name's or a reaction's, draws Twemoji's

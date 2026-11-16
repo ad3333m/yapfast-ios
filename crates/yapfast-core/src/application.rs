@@ -119,7 +119,7 @@ use profiles::{dm_profile, keep_board, names_games, same_board};
 const MENTION_SUGGESTIONS: usize = 8;
 const MENTION_GROUPS: usize = 4;
 
-const STOPPED: &str = "The connection has stopped. Restart Yapfast to restore your session.";
+const STOPPED: &str = "The connection has stopped. Restart Discord to restore your session.";
 
 /// Reactions offered before someone has used any, in order.
 pub const DEFAULT_REACTIONS: [&str; 4] = ["👍", "❤️", "😂", "🎉"];

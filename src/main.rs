@@ -32,6 +32,8 @@ mod graphics;
 mod icon;
 #[cfg(feature = "desktop")]
 mod instance;
+#[cfg(all(feature = "desktop", target_os = "ios"))]
+mod ios_rfd;
 #[cfg(feature = "desktop")]
 mod keybinds;
 #[cfg(feature = "desktop")]
@@ -117,7 +119,7 @@ fn main() -> Result<()> {
     let open_link = links.pop().and_then(|link| {
         let written = written_link(&link);
         if written.is_none() {
-            tracing::info!("Yapfast has no place for the link it was handed; starting without it");
+            tracing::info!("Discord has no place for the link it was handed; starting without it");
         }
         written
     });
@@ -154,7 +156,7 @@ fn main() -> Result<()> {
         [argument] if argument == "--smoke-test" => {
             runtime.block_on(runtime.spawn(yapfast_core::check_build()))?;
             println!(
-                "Yapfast {}: Tokio, LiveKit{}{} build check passed.",
+                "Discord {}: Tokio, LiveKit{}{} build check passed.",
                 env!("CARGO_PKG_VERSION"),
                 if cfg!(feature = "matrix") {
                     ", Matrix SDK, MatrixRTC"
@@ -299,7 +301,7 @@ fn finish_update(prepared: update::install::Prepared, arguments: &[String]) -> R
 /// so a restart follows the setting, nor `--background`: the window shows.
 #[cfg(feature = "desktop")]
 fn relaunch(arguments: &[String], gpu_failure: Option<&str>, link: Option<&str>) -> Result<()> {
-    let program = std::env::current_exe().context("could not find Yapfast to restart it")?;
+    let program = std::env::current_exe().context("could not find Discord to restart it")?;
     relaunch_program(&program, arguments, gpu_failure, link)
 }
 
@@ -327,13 +329,13 @@ fn relaunch_program(
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
-        Err(command.exec()).context("could not restart Yapfast")
+        Err(command.exec()).context("could not restart Discord")
     }
     #[cfg(not(unix))]
     {
         // Waiting for the replacement would keep this process and its stopped
         // window alive until the new client closes.
-        command.spawn().context("could not restart Yapfast")?;
+        command.spawn().context("could not restart Discord")?;
         std::process::exit(0);
     }
 }

@@ -240,7 +240,7 @@ impl<'a> Video<'a> {
             2 => Ok(Some(Next::Sound(time))),
             0 => Ok(Some(Next::End)),
             3 => Ok(None),
-            -2 => bail!("the video's pictures are in a format Yapfast doesn't show"),
+            -2 => bail!("the video's pictures are in a format Discord doesn't show"),
             _ => bail!("could not decode the video ({got})"),
         }
     }

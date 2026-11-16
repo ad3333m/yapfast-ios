@@ -36,7 +36,6 @@ slint = { workspace = true, optional = true }
 # Reject an unpinned native source build if the prepared Skia archive is unavailable.
 skia-safe = { version = "=0.157.0", default-features = false, features = ["binary-cache", "no-compile"], optional = true }
 # Native open and save dialogs: XDG portals on Linux, common dialogs on Windows.
-rfd = { version = "0.17", default-features = false, features = ["xdg-portal"], optional = true }
 # Names and categories for the emoji picker.
 emojis = { version = "0.9", optional = true }
 # Maps the color emoji font Yapfast registers with Slint, rather than copying it.
@@ -49,7 +48,6 @@ yapfast-ui = { path = "crates/yapfast-ui", optional = true }
 # Opens links clicked in messages in the default browser.
 webbrowser = { version = "1", optional = true }
 # Pictures copied from messages. Slint already carries arboard for text.
-arboard = { version = "3.6", default-features = false, features = ["image-data", "wayland-data-control"], optional = true }
 # Saves pictures pasted as pixels to PNG files to attach, after decoding the
 # bitmaps Windows pastes, and reads pictures copied from messages.
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "bmp"], optional = true }
@@ -89,6 +87,12 @@ ksni = { version = "0.3.7", default-features = false, features = ["async-io", "b
 futures-util = { workspace = true, optional = true }
 x11rb = { version = "0.13.2", default-features = false, features = ["xinput"], optional = true }
 xkeysym = { version = "0.2.1", optional = true }
+
+# Native file dialogs and the clipboard's pictures, which have no iOS backend;
+# the iPhone build stands in for rfd with src/ios_rfd.rs. See docs/ios.md.
+[target.'cfg(not(target_os = "ios"))'.dependencies]
+rfd = { version = "0.17", default-features = false, features = ["xdg-portal"], optional = true }
+arboard = { version = "3.6", default-features = false, features = ["image-data", "wayland-data-control"], optional = true }
 
 # The tray icon, giving memory back while the window is closed, the event a
 # later start sets to show the window, the clipboard's files and pictures for

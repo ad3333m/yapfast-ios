@@ -95,7 +95,7 @@ pub fn add<'a>(arrived: impl IntoIterator<Item = (&'a str, &'a Picture)>) -> boo
         if glyphs.is_empty() {
             return false;
         }
-        let family = format!("Yapfast Custom Emoji {}", registry.fonts);
+        let family = format!("Discord Custom Emoji {}", registry.fonts);
         if !emoji_font::register(&family, &glyphs, &[]) {
             tracing::warn!("could not register a font of custom emoji");
             return false;

@@ -737,7 +737,7 @@ impl Status {
     pub fn talk_note(&self) -> String {
         match &self.reach {
             Reach::Asking => {
-                "Asking your desktop to let Yapfast use the key in every app...".into()
+                "Asking your desktop to let Discord use the key in every app...".into()
             }
             Reach::Everywhere => "Hold the key in any app to talk.".into(),
             Reach::Desktop => match self.given.get(TALK_SHORTCUT) {
@@ -747,7 +747,7 @@ impl Status {
                 _ => "Your desktop hasn't allowed this shortcut yet. Approve it in your system's global shortcuts settings.".into(),
             },
             Reach::Focused(why) => format!(
-                "{why}, so push to talk works only while Yapfast's window is in front."
+                "{why}, so push to talk works only while Discord's window is in front."
             ),
         }
     }
@@ -756,12 +756,12 @@ impl Status {
     pub fn page_note(&self) -> String {
         match &self.reach {
             Reach::Asking => {
-                "Asking your desktop to let Yapfast use these keybinds in every app...".into()
+                "Asking your desktop to let Discord use these keybinds in every app...".into()
             }
             Reach::Everywhere => "Keybinds work in any app.".into(),
             Reach::Desktop => "Your desktop runs these keybinds in every app: it may ask you to allow each, or give one other keys. Change them in your system's global shortcuts settings.".into(),
             Reach::Focused(why) => {
-                format!("{why}, so keybinds work only while Yapfast's window is in front.")
+                format!("{why}, so keybinds work only while Discord's window is in front.")
             }
         }
     }
@@ -897,7 +897,7 @@ impl Watcher {
         {
             let _ = (runtime, sink);
             report(Status {
-                reach: Reach::Focused("Yapfast can't watch keys in other apps on this system yet"),
+                reach: Reach::Focused("Discord can't watch keys in other apps on this system yet"),
                 given: HashMap::new(),
             });
         }
@@ -1014,7 +1014,7 @@ mod linux {
                             );
                             report(Status {
                                 reach: Reach::Focused(
-                                    "Your desktop doesn't offer Yapfast global shortcuts",
+                                    "Your desktop doesn't offer Discord global shortcuts",
                                 ),
                                 given: HashMap::new(),
                             });
@@ -1033,7 +1033,7 @@ mod linux {
                 Err(error) => {
                     tracing::info!(error = format!("{error:#}"), "no global keybinds on X11");
                     report(Status {
-                        reach: Reach::Focused("Yapfast couldn't watch keys in other apps"),
+                        reach: Reach::Focused("Discord couldn't watch keys in other apps"),
                         given: HashMap::new(),
                     });
                     None
@@ -1277,7 +1277,7 @@ mod linux {
                             Err(error) => {
                                 tracing::warn!(%error, "lost the X server's keys");
                                 report(Status {
-                                    reach: Reach::Focused("Yapfast lost the X server's keys"),
+                                    reach: Reach::Focused("Discord lost the X server's keys"),
                                     given: HashMap::new(),
                                 });
                                 break;
@@ -1739,7 +1739,7 @@ mod windows {
                     tracing::warn!("Windows didn't install the keybind hooks");
                     report(Status {
                         reach: Reach::Focused(
-                            "Windows didn't let Yapfast watch keys in other apps",
+                            "Windows didn't let Discord watch keys in other apps",
                         ),
                         given: HashMap::new(),
                     });
@@ -2598,11 +2598,11 @@ mod tests {
             status.given_note("keybind-2").as_deref(),
             Some("Your desktop hasn't allowed it yet.")
         );
-        status.reach = Reach::Focused("Your desktop doesn't offer Yapfast global shortcuts");
+        status.reach = Reach::Focused("Your desktop doesn't offer Discord global shortcuts");
         assert_eq!(status.given_note("keybind-2"), None);
         assert_eq!(
             status.page_note(),
-            "Your desktop doesn't offer Yapfast global shortcuts, so keybinds work only while Yapfast's window is in front."
+            "Your desktop doesn't offer Discord global shortcuts, so keybinds work only while Discord's window is in front."
         );
     }
 }

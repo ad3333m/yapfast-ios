@@ -222,7 +222,7 @@ fn list(sinks: bool) -> Result<Vec<Listed>> {
         match context.get_state() {
             context::State::Ready => break,
             context::State::Failed | context::State::Terminated => {
-                bail!("the sound server refused Yapfast")
+                bail!("the sound server refused Discord")
             }
             _ => {}
         }
@@ -533,7 +533,7 @@ mod others {
             rate: RATE,
             channels: 2,
         };
-        let stream = Stream::new(context, "Yapfast stream sound", &spec, None)
+        let stream = Stream::new(context, "Discord stream sound", &spec, None)
             .context("PulseAudio refused a capture stream")?;
         let stream = Rc::new(RefCell::new(stream));
         stream

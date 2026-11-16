@@ -120,7 +120,7 @@ fn install_offer(release: &Release) -> (bool, String) {
             let megabytes = target.asset().size.div_ceil(1_000_000);
             (
                 true,
-                format!("{megabytes} MB. Yapfast restarts when it's done."),
+                format!("{megabytes} MB. Discord restarts when it's done."),
             )
         }
         Err(_) if update::source().manager().is_some() => (false, String::new()),
@@ -201,7 +201,7 @@ fn start_install(adapter: &Rc<RefCell<Adapter>>) {
                     tracing::error!(%error, "could not end the window to finish the update");
                     adapter.updates.prepared = None;
                     adapter.updates.install_error =
-                        "Couldn't restart. Please reopen Yapfast.".into();
+                        "Couldn't restart. Please reopen Discord.".into();
                 }
             }
             Err(error) => {
@@ -355,7 +355,7 @@ impl Adapter {
         self.notifier.show(
             yapfast_core::chat::Alert {
                 room: ABOUT.into(),
-                title: format!("Yapfast {} is available", release.tag),
+                title: format!("Discord {} is available", release.tag),
                 body: "Click to see what's new.".into(),
                 picture: None,
                 call: false,

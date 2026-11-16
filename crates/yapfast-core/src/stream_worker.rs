@@ -1610,7 +1610,7 @@ fn running_yapfast() -> Result<PathBuf> {
     if cfg!(target_os = "linux") {
         return Ok(PathBuf::from("/proc/self/exe"));
     }
-    std::env::current_exe().context("could not find Yapfast to start streaming")
+    std::env::current_exe().context("could not find Discord to start streaming")
 }
 
 /// What a worker's reports last said about its job, to log if it ends
@@ -2134,7 +2134,7 @@ mod tests {
     /// WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 xvfb-run`, with a window as the
     /// next test says.
     #[test]
-    #[ignore = "needs a desktop where Yapfast lists what to share"]
+    #[ignore = "needs a desktop where Discord lists what to share"]
     fn glances_at_the_listed_screens() {
         let screens: Vec<u64> = shareable()
             .into_iter()
@@ -2183,7 +2183,7 @@ mod tests {
     /// without them libwebrtc's X11 capturer lists no window, or asks for a
     /// property X doesn't know and Xlib ends the process.
     #[test]
-    #[ignore = "needs a desktop where Yapfast lists what to share"]
+    #[ignore = "needs a desktop where Discord lists what to share"]
     fn shares_a_listed_screen_and_window() {
         let listed = shareable();
         eprintln!("{listed:#?}");

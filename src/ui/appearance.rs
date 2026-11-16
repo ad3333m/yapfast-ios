@@ -210,7 +210,7 @@ impl Adapter {
             let name = name.split('.').next().unwrap_or(&name).to_owned();
             match std::fs::read_to_string(file.path()) {
                 Ok(css) => import_css(weak, runtime, css, name).await,
-                Err(error) => import_note(&weak, &format!("Yapfast could not read it: {error}")),
+                Err(error) => import_note(&weak, &format!("Discord could not read it: {error}")),
             }
         });
     }
@@ -241,7 +241,7 @@ impl Adapter {
         let spawned = slint::spawn_local(async move {
             match task.await.unwrap_or_default().pop() {
                 Some(css) => import_css(weak, runtime, css, name).await,
-                None => import_note(&weak, "Yapfast could not download that theme."),
+                None => import_note(&weak, "Discord could not download that theme."),
             }
         });
         if let Err(error) = spawned {
@@ -282,7 +282,7 @@ async fn import_css(
     }
     vars.read(&css);
     if css_theme::colours(&vars).is_empty() {
-        import_note(&weak, "That theme sets no colours Yapfast can read.");
+        import_note(&weak, "That theme sets no colours Discord can read.");
         return;
     }
     let name = css_theme::meta(&css, "name").unwrap_or(name);

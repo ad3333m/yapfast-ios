@@ -2787,7 +2787,7 @@ fn a_link_showing_other_text_asks_before_it_opens() {
             .dispatch_event(WindowEvent::PointerReleased { position, button });
     }
     let opened = opened.borrow();
-    assert!(!opened.is_empty(), "a click on the link reaches Yapfast");
+    assert!(!opened.is_empty(), "a click on the link reaches Discord");
     assert!(
         opened
             .iter()
@@ -10796,12 +10796,12 @@ fn yapfast_settings_name_the_build_and_copy_it_on_a_click() {
     window.set_account_name("Alex".into());
     window.set_account_initial("A".into());
     let build = window.global::<BuildInfo>();
-    build.set_headline("Yapfast v0.4.0-nightly.20261107.12".into());
+    build.set_headline("Discord v0.4.0-nightly.20261107.12".into());
     build.set_channel("Nightly".into());
     build.set_details("59391f96 · 2026-11-07".into());
     build.set_tone(1);
     build
-        .set_summary("Yapfast v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07".into());
+        .set_summary("Discord v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07".into());
     window.set_settings_open(true);
     window.show().unwrap();
     window
@@ -10817,7 +10817,7 @@ fn yapfast_settings_name_the_build_and_copy_it_on_a_click() {
     };
     assert_ne!(
         clipboard().as_deref(),
-        Some("Yapfast v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07")
+        Some("Discord v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07")
     );
     // Under the sections, at the foot of the navigation.
     let position = slint::LogicalPosition::new(350., 980.);
@@ -10833,7 +10833,7 @@ fn yapfast_settings_name_the_build_and_copy_it_on_a_click() {
         });
     assert_eq!(
         clipboard().as_deref(),
-        Some("Yapfast v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07"),
+        Some("Discord v0.4.0-nightly.20261107.12 · Nightly · 59391f96 · 2026-11-07"),
         "a click on the build copies it as one line"
     );
     assert!(window.get_settings_open(), "and leaves settings open");
@@ -10849,7 +10849,7 @@ fn yapfast_settings_offer_a_newer_release_and_open_about_on_a_click() {
     window.set_account_name("Alex".into());
     window.set_account_initial("A".into());
     let build = window.global::<BuildInfo>();
-    build.set_headline("Yapfast v0.4.0".into());
+    build.set_headline("Discord v0.4.0".into());
     build.set_channel("Stable".into());
     window.set_settings_open(true);
     window.set_settings_section(6);

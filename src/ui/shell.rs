@@ -257,7 +257,7 @@ impl Shell {
         }
         #[cfg(not(feature = "discord"))]
         let _ = link;
-        tracing::warn!("a later start handed Yapfast a link it can't open");
+        tracing::warn!("a later start handed Discord a link it can't open");
     }
 
     /// Opens the window on a conversation, as a clicked notification does.
@@ -353,7 +353,7 @@ pub(super) fn launched(launch: crate::instance::Launch) {
     let Some(shell) = SHELL.with(|shell| shell.borrow().upgrade()) else {
         return;
     };
-    tracing::info!("Yapfast started again; showing the window");
+    tracing::info!("Discord started again; showing the window");
     if let Some(link) = link {
         shell.queue_link(link);
     }
@@ -452,9 +452,9 @@ impl Adapter {
     pub(super) fn show_title(&self, window: &YapfastWindow) {
         let waiting: u64 = self.app.state.rooms.iter().map(|room| room.mentions).sum();
         let title = match waiting {
-            0 => "Yapfast".to_owned(),
-            1..=99 => format!("({waiting}) Yapfast"),
-            _ => "(99+) Yapfast".to_owned(),
+            0 => "Discord".to_owned(),
+            1..=99 => format!("({waiting}) Discord"),
+            _ => "(99+) Discord".to_owned(),
         };
         if window.get_window_title() != title.as_str() {
             window.set_window_title(title.into());

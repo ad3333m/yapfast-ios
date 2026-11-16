@@ -34,6 +34,10 @@ use yapfast_core::{
 };
 
 use crate::drop::Drag;
+// rfd has no iOS backend; its stand-in picks nothing. The modules under ui
+// see it through their `use super::*`.
+#[cfg(target_os = "ios")]
+use crate::ios_rfd as rfd;
 use crate::{autostart, custom_emoji, emoji, emoji_text, graphics, zoom};
 
 mod active_now;
@@ -152,7 +156,7 @@ pub fn run(
         })
         .select()
         .context("could not select the Slint desktop backend")?;
-    slint::set_xdg_app_id(crate::icon::APP_ID).context("could not set Yapfast's app ID")?;
+    slint::set_xdg_app_id(crate::icon::APP_ID).context("could not set Discord's app ID")?;
     let gpu = plan.renderer == graphics::Renderer::Gpu;
     let failed = |error: slint::PlatformError, context: &'static str| -> Result<Exit> {
         let reason = error.to_string();
@@ -174,14 +178,14 @@ pub fn run(
     }
     let window = match yapfast::window() {
         Ok(window) => window,
-        Err(error) => return failed(error, "could not create the Yapfast window"),
+        Err(error) => return failed(error, "could not create the Discord window"),
     };
     title_bar::show(&window, system_title_bar);
     if let Some(placement) = &placement {
         placement::place(&window, placement);
     }
     if !hidden && let Err(error) = window.show() {
-        return failed(error, "could not show Yapfast");
+        return failed(error, "could not show Discord");
     }
     if !preview {
         AUTOSTART.set(autostart::SUPPORTED);
@@ -263,7 +267,7 @@ pub fn run(
         Err(error) => failed(error, "Slint's desktop event loop failed"),
         Ok(()) if missing_window.get() => failed(
             "the window did not appear".into(),
-            "Yapfast's window did not appear",
+            "Discord's window did not appear",
         ),
         Ok(()) => Ok(match updated {
             Some(prepared) => Exit::Update(prepared),
@@ -2848,7 +2852,7 @@ impl Adapter {
             Ok(handle) => self.dialog = Some(handle),
             Err(error) => {
                 tracing::error!(%error, "could not open the file dialog");
-                self.app.state.notice = Some("Yapfast could not open a file dialog.".into());
+                self.app.state.notice = Some("Discord could not open a file dialog.".into());
             }
         }
     }
