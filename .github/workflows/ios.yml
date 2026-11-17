@@ -7,8 +7,9 @@ on:
     branches: [ios]
   workflow_dispatch:
 
+# Writes the release and the KravaSign source's branch.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ios-${{ github.ref }}
@@ -41,9 +42,31 @@ jobs:
           mkdir -p "$app"
           cp target/aarch64-apple-ios/release/yapfast "$app/"
           cp packaging/ios/Info.plist packaging/ios/*.png "$app/"
+          sed -i '' "s|<key>CFBundleVersion</key><string>1</string>|<key>CFBundleVersion</key><string>${{ github.run_number }}</string>|" "$app/Info.plist"
           zip -qry Yapfast.ipa Payload
       - uses: actions/upload-artifact@v4
         with:
           name: ios
           path: Yapfast.ipa
           if-no-files-found: error
+      # Each build goes out as a release, and the KravaSign source on the feed
+      # branch points at it: kravasigner://source/https://raw.githubusercontent.com/<repo>/feed/repo.json
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="ios-${{ github.run_number }}"
+          gh release create "$tag" Yapfast.ipa --repo "${{ github.repository }}"             --title "Discord (Yapfast) for iPhone, build ${{ github.run_number }}"             --notes "Unsigned IPA of ${{ github.sha }}; sign it in KravaSign."
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+      - name: Update the KravaSign source
+        run: |
+          size=$(stat -f%z Yapfast.ipa)
+          git fetch origin feed || true
+          git worktree add feed origin/feed 2>/dev/null || { git worktree add --detach feed; (cd feed && git checkout --orphan feed && git rm -rqf .); }
+          python3 packaging/ios/source.py "${{ github.repository }}" "$TAG" "${{ github.run_number }}" "$size" > feed/repo.json
+          cd feed
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add repo.json
+          git commit -qm "Build ${{ github.run_number }}"
+          git push origin HEAD:feed
