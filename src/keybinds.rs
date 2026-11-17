@@ -20,11 +20,25 @@ use std::{
 use serde::{Deserialize, Serialize};
 #[cfg(windows)]
 use slint::winit_030::winit::event::MouseButton;
+#[cfg(not(target_os = "ios"))]
+use slint::winit_030::winit::platform::scancode::PhysicalKeyExtScancode;
 use slint::winit_030::winit::{
     event::{ElementState, KeyEvent, WindowEvent},
     keyboard::{Key as LogicalKey, KeyLocation, NamedKey, PhysicalKey},
-    platform::scancode::PhysicalKeyExtScancode,
 };
+
+/// winit has no scan codes on iOS, so keybinds there have no keys.
+#[cfg(target_os = "ios")]
+trait PhysicalKeyExtScancode {
+    fn to_scancode(self) -> Option<u32>;
+}
+
+#[cfg(target_os = "ios")]
+impl PhysicalKeyExtScancode for PhysicalKey {
+    fn to_scancode(self) -> Option<u32> {
+        None
+    }
+}
 use yapfast_core::runtime::BackgroundRuntime;
 
 /// The most keys one keybind holds together.

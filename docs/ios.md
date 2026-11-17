@@ -16,3 +16,5 @@ What the desktop build has and iOS doesn't:
   login sits in the keychain through keyring's `protected` store.
 - Screen sharing: libwebrtc has no desktop capturer on iOS, so a stand-in in
   `stream_worker.rs` lists no screen or window; cameras still share.
+- Keybinds: winit has no scan codes on iOS, so `src/keybinds.rs` gives none
+  and keybinds can't be recorded; dragging files in isn't followed either.
