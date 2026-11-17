@@ -27,6 +27,8 @@ mod emoji_font_tables;
 #[cfg(feature = "desktop")]
 mod emoji_text;
 #[cfg(feature = "desktop")]
+mod gg_sans;
+#[cfg(feature = "desktop")]
 mod graphics;
 #[cfg(feature = "desktop")]
 mod icon;

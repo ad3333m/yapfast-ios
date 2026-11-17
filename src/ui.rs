@@ -114,6 +114,9 @@ pub fn run(
     background: bool,
     open_link: Option<String>,
 ) -> Result<Exit> {
+    // Discord's typeface, fetched once into the data folder; see gg_sans.rs.
+    DATA_ROOT.set(Some(root.clone()));
+    crate::gg_sans::fetch(&runtime, &root);
     let (plan, placement, system_title_bar, mut instance) = {
         let mut layout = Layout::read(&root);
         let instance = if preview {
@@ -281,6 +284,11 @@ pub fn run(
     }
 }
 
+thread_local! {
+    /// The data folder, for what each window made reads from it.
+    static DATA_ROOT: RefCell<Option<PathBuf>> = const { RefCell::new(None) };
+}
+
 /// Only the private test compositor can request a different initial size.
 fn isolated_display() -> bool {
     std::env::var("YAPFAST_FRAMEWORK_ISOLATED_DISPLAY").as_deref() == Ok("1")
@@ -308,6 +316,9 @@ fn prepare(window: &YapfastWindow) {
     }
     window.set_emoji_font(emoji::family().into());
     emoji_text::register();
+    if let Some(root) = DATA_ROOT.with_borrow(Clone::clone) {
+        crate::gg_sans::wear(window, &root);
+    }
     window
         .global::<Twemoji>()
         .on_text(|text| emoji_text::text(&text).into());

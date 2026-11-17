@@ -101,9 +101,7 @@ fn main() {
         .file("native/vp8.c")
         .file("native/h264.c")
         .file("native/clip.c")
-        .file("native/decode.c")
         .file("native/av1.c")
-        .file("native/video.c")
         .include(third_party.join("libvpx/source/libvpx"))
         // x264-src's build script hands over its headers' folder.
         .include(std::env::var_os("DEP_X264_INCLUDE").expect("x264-src's headers"))
@@ -113,6 +111,12 @@ fn main() {
         // FFmpeg's configuration for the Chrome build libwebrtc uses.
         .include(third_party.join(format!("ffmpeg/chromium/config/Chrome/{os}/{arch}")))
         .warnings(true);
+    // libwebrtc for iOS has no FFmpeg, which these two decode with.
+    if target_os == "ios" {
+        codecs.file("native/ios_media.c");
+    } else {
+        codecs.file("native/decode.c").file("native/video.c");
+    }
     use_clang_cl(&mut codecs);
     codecs.compile("yapfast_codecs");
 }

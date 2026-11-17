@@ -5,7 +5,8 @@ export global ClientStyle {
     // An open-licensed, bundled face gives every platform the same text metrics.
     in-out property <string> native-font: "DM Sans";
     out property <string> font-family: self.enabled ? self.native-font : "Atkinson Hyperlegible Next";
-    out property <length> text-size: self.enabled ? 15px : 16px;
+    // Discord's chat text: 16px, its default font scaling.
+    out property <length> text-size: 16px;
     out property <length> sidebar-width: self.enabled ? 304px : 240px;
     // Discord's header rows: 48px between its outline and the line under them, 50px with both.
     out property <length> header-height: self.enabled ? 50px : 48px;

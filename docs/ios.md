@@ -18,3 +18,6 @@ What the desktop build has and iOS doesn't:
   `stream_worker.rs` lists no screen or window; cameras still share.
 - Keybinds: winit has no scan codes on iOS, so `src/keybinds.rs` gives none
   and keybinds can't be recorded; dragging files in isn't followed either.
+- Video files and watching someone's stream: libwebrtc for iOS has no
+  FFmpeg, so `native/ios_media.c` stands in for `video.c` and `decode.c`,
+  and opening either fails.
