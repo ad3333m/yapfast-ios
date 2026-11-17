@@ -1,0 +1,29 @@
+{
+  "name": "Discord (Yapfast)",
+  "identifier": "io.github.ad3333m.yapfast.source",
+  "subtitle": "Builds of Discord (Yapfast) for iPhone",
+  "iconURL": "https://raw.githubusercontent.com/ad3333m/yapfast-ios/ios/packaging/ios/AppIcon-1024.png",
+  "website": "https://github.com/ad3333m/yapfast-ios",
+  "sourceURL": "https://raw.githubusercontent.com/ad3333m/yapfast-ios/feed/repo.json",
+  "tintColor": "5865F2",
+  "featuredApps": [
+    "io.github.ad3333m.yapfast"
+  ],
+  "apps": [
+    {
+      "name": "Discord (Yapfast)",
+      "bundleIdentifier": "io.github.ad3333m.yapfast",
+      "developerName": "ad3333m",
+      "subtitle": "Discord, native in Rust",
+      "version": "0.4.1",
+      "buildVersion": "8",
+      "versionDate": "2026-11-17",
+      "downloadURL": "https://github.com/ad3333m/yapfast-ios/releases/download/ios-8/Yapfast.ipa",
+      "localizedDescription": "A native Discord client written in Rust: plugins in the manner of Vencord's, Endcord themes, Switch Accounts and EnhancedDecor. On iPhone, sharing your screen, playing video files and watching others' streams aren't there yet.",
+      "iconURL": "https://raw.githubusercontent.com/ad3333m/yapfast-ios/ios/packaging/ios/AppIcon-1024.png",
+      "tintColor": "5865F2",
+      "size": 56005812
+    }
+  ],
+  "news": []
+}
